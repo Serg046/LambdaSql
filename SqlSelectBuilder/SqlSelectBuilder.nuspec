@@ -2,17 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>SqlSelectBuilder</id>
-        <version>1.0.0.2</version>
+        <version>1.0.0.3</version>
         <title>Sql Select Builder</title>
         <authors>Serg046</authors>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Sql Select Builder</description>
         <projectUrl>https://github.com/Serg046/SqlSelectBuilder</projectUrl>
-        <dependencies>
-          <dependency id="GuardExtensions" version="1.0.0.1" />
-        </dependencies>
     </metadata>
     <files>
         <file src="bin\Release\SqlSelectBuilder.dll" target="lib" />
+        <file src="bin\Release\GuardExtensions.dll" target="lib" />
     </files>
 </package>

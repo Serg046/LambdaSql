@@ -20,7 +20,7 @@ namespace SqlSelectBuilder
             Instance = new MetadataProvider();
         }
 
-        private MetadataProvider()
+        protected MetadataProvider()
         {
             _aliasContainer = new SqlAliasContainer();
         }
@@ -43,18 +43,18 @@ namespace SqlSelectBuilder
             Instance = metadataProvider;
         }
 
-        public string GetTableName<TEntity>()
+        public virtual string GetTableName<TEntity>()
         {
             return GetTableName(typeof(TEntity));
         }
 
-        public string GetTableName(Type entityType)
+        public virtual string GetTableName(Type entityType)
         {
             Guard.IsNotNull(entityType);
             return entityType.Name;
         }
 
-        public string GetPropertyName(LambdaExpression propertyExpression)
+        public virtual string GetPropertyName(LambdaExpression propertyExpression)
         {
             Guard.IsNotNull(propertyExpression);
             var memberExpression = propertyExpression.Body as MemberExpression;
@@ -73,13 +73,13 @@ namespace SqlSelectBuilder
             throw new InvalidOperationException();
         }
 
-        public string GetPropertyName(MemberExpression memberExpression)
+        public virtual string GetPropertyName(MemberExpression memberExpression)
         {
             Guard.IsNotNull(memberExpression);
             return memberExpression.Member.Name;
         }
 
-        public string ParameterToString(object value)
+        public virtual string ParameterToString(object value)
         {
             Guard.IsNotNull(value);
             if (value is int)
@@ -96,7 +96,7 @@ namespace SqlSelectBuilder
             throw new NotSupportedException($"Type {value.GetType().FullName} is not supported as parameter");
         }
 
-        public SqlAlias<TEntity> AliasFor<TEntity>()
+        public virtual SqlAlias<TEntity> AliasFor<TEntity>()
         {
             return _aliasContainer.For<TEntity>();
         }

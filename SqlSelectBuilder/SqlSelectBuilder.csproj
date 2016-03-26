@@ -96,6 +96,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="IMetadataProvider.cs" />
     <Compile Include="ISqlField.cs" />
+    <Compile Include="ISqlSelect.cs" />
     <Compile Include="SqlAlias.cs" />
     <Compile Include="MetadataProvider.cs" />
     <Compile Include="SqlAliasContainer.cs" />

@@ -10,47 +10,6 @@ using GuardExtensions;
 
 namespace SqlSelectBuilder
 {
-    [ContractClass(typeof(ISqlSelectContract))]
-    public interface ISqlSelect
-    {
-        string CommandText { get; }
-        IEnumerable<ISqlField> Fields { get; }
-        IEnumerable<ISqlAlias> Aliases { get; }
-    }
-
-    [ContractClassFor(typeof(ISqlSelect))]
-    [ExcludeFromCodeCoverage]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal abstract class ISqlSelectContract : ISqlSelect
-    {
-        public IEnumerable<ISqlAlias> Aliases
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<IEnumerable<ISqlAlias>>() != null);
-                throw new NotImplementedException();
-            }
-        }
-
-        public string CommandText
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<string>().IsNotEmpty());
-                throw new NotImplementedException();
-            }
-        }
-
-        public IEnumerable<ISqlField> Fields
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<IEnumerable<ISqlField>>() != null);
-                throw new NotImplementedException();
-            }
-        }
-    }
-
     public class SqlSelect<T> : SqlSelectBase<T>, ISqlSelect
     {
         // ReSharper disable InconsistentNaming
@@ -97,7 +56,10 @@ namespace SqlSelectBuilder
             }
         }
 
-        IEnumerable<ISqlField> ISqlSelect.Fields => Info.SelectFields;
+        Type ISqlSelect.EntityType => typeof(T);
+        IEnumerable<ISqlField> ISqlSelect.SelectFields => Info.SelectFields;
+        IEnumerable<ISqlField> ISqlSelect.GroupByFields => Info.GroupByFields;
+        IEnumerable<ISqlField> ISqlSelect.OrderByFields => Info.OrderByFields;
         IEnumerable<ISqlAlias> ISqlSelect.Aliases => Info.Aliases;
 
         private void CheckAliases()
@@ -128,6 +90,7 @@ namespace SqlSelectBuilder
             return CommandText;
         }
 
+        void ISqlSelect.Top(int top, bool topByPercent) => Top(top, topByPercent);
         public SqlSelect<T> Top(int top, bool topByPercent = false)
         {
             if (!topByPercent)
@@ -153,6 +116,7 @@ namespace SqlSelectBuilder
             return this;
         }
 
+        void ISqlSelect.Distinct(bool isDistinct) => Distinct(isDistinct);
         public SqlSelect<T> Distinct(bool isDistinct)
         {
             IsDistinct = isDistinct;
@@ -161,6 +125,7 @@ namespace SqlSelectBuilder
 
         //-------------------------------------------------------------------------
 
+        void ISqlSelect.AddField(ISqlField field) => AddField(field);
         public SqlSelect<T> AddField(ISqlField field)
         {
             Guard.IsNotNull(field);
@@ -181,6 +146,14 @@ namespace SqlSelectBuilder
             Guard.IsNotNull(fields);
             AddFields(MetadataProvider.AliasFor<TEntity>(), fields, SelectFields);
             return this;
+        }
+
+        void ISqlSelect.AddFields<TEntity>(SqlAlias<TEntity> alias,
+            params Expression<Func<TEntity, object>>[] fields)
+        {
+            if (alias == null)
+                MetadataProvider.AliasFor<TEntity>();
+            AddFields(alias, fields);
         }
 
         public SqlSelect<T> AddFields<TEntity>(SqlAlias<TEntity> alias,
@@ -206,6 +179,14 @@ namespace SqlSelectBuilder
             return this;
         }
 
+        void ISqlSelect.GroupBy<TEntity>(SqlAlias<TEntity> alias,
+            params Expression<Func<TEntity, object>>[] fields)
+        {
+            if (alias == null)
+                MetadataProvider.AliasFor<TEntity>();
+            GroupBy(alias, fields);
+        }
+
         public SqlSelect<T> GroupBy<TEntity>(SqlAlias<TEntity> alias,
             params Expression<Func<TEntity, object>>[] fields)
         {
@@ -227,6 +208,14 @@ namespace SqlSelectBuilder
             Guard.IsNotNull(fields);
             AddFields(MetadataProvider.AliasFor<TEntity>(), fields, OrderByFields);
             return this;
+        }
+
+        void ISqlSelect.OrderBy<TEntity>(SqlAlias<TEntity> alias,
+            params Expression<Func<TEntity, object>>[] fields)
+        {
+            if (alias == null)
+                MetadataProvider.AliasFor<TEntity>();
+            OrderBy(alias, fields);
         }
 
         public SqlSelect<T> OrderBy<TEntity>(SqlAlias<TEntity> alias,
@@ -316,8 +305,30 @@ namespace SqlSelectBuilder
             return this;
         }
 
+        void ISqlSelect.Join<TJoin>(JoinType joinType, SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias)
+        {
+            switch (joinType)
+            {
+                case JoinType.Inner:
+                    InnerJoin(condition, joinAlias);
+                    break;
+                case JoinType.Left:
+                    LeftJoin(condition, joinAlias);
+                    break;
+                case JoinType.Right:
+                    RightJoin(condition, joinAlias);
+                    break;
+                case JoinType.Full:
+                    FullJoin(condition, joinAlias);
+                    break;
+                default:
+                    throw new NotSupportedException($"{joinType.ToString()} is not supported");
+            }
+        }
+
         //-------------------------------------------------------------------------
 
+        void ISqlSelect.Where(ISqlFilter filter) => Where(filter);
         public SqlSelect<T> Where(ISqlFilter filter)
         {
             Guard.IsNotNull(filter);
@@ -325,6 +336,7 @@ namespace SqlSelectBuilder
             return this;
         }
 
+        void ISqlSelect.Having(ISqlFilter filter) => Having(filter);
         public SqlSelect<T> Having(ISqlFilter filter)
         {
             Guard.IsNotNull(filter);

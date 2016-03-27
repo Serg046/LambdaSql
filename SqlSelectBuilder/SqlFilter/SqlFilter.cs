@@ -1,65 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
-using System.Dynamic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using GuardExtensions;
 
-namespace SqlSelectBuilder
+namespace SqlSelectBuilder.SqlFilter
 {
-    [ContractClass(typeof(ISqlFilterContract))]
-    public interface ISqlFilter
+    public class SqlFilter<TEntity> : SqlFilterBase<TEntity>
     {
-        string Filter { get; }
-    }
-
-    [ContractClassFor(typeof(ISqlFilter))]
-    [ExcludeFromCodeCoverage]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal abstract class ISqlFilterContract : ISqlFilter
-    {
-        public string Filter
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<string>().IsNotEmpty());
-                throw new NotImplementedException();
-            }
-        }
-    }
-
-    public class SqlFilter<TEntity> : ISqlFilter
-    {
-        private const string AND = " AND ";
-        private const string OR = " OR ";
-
         internal SqlFilter()
         {
-            Filter = null;
         }
 
-        internal SqlFilter(string filter)
+        internal SqlFilter(string filter) : base(filter)
         {
-            Guard.IsNotEmpty(filter);
-            Filter = filter;
         }
-
-        public string Filter { get; }
 
         public override string ToString() => Filter;
-
-        private static string GetFieldName(LambdaExpression field, ISqlAlias alias)
-        {
-            Contract.Requires(field != null);
-            Contract.Requires(alias != null);
-            Contract.Ensures(Contract.Result<string>().IsNotEmpty());
-            var fieldName = MetadataProvider.Instance.GetPropertyName(field);
-            return alias.Value + "." + fieldName;
-        }
 
         private SqlFilterField<TEntity, TType> AddFilter<TType>(string field, string logicSeparator)
         {
@@ -69,15 +25,11 @@ namespace SqlSelectBuilder
             return new SqlFilterField<TEntity, TType>(Filter + logicSeparator, field);
         }
 
-        //----------------------------------
-
         public static SqlFilterField<TEntity, TType> From<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
             Guard.IsNotNull(field);
-
-            if (alias == null)
-                alias = MetadataProvider.Instance.AliasFor<TEntity>();
+            alias = CheckAlias(alias);
             return new SqlFilterField<TEntity, TType>(GetFieldName(field, alias));
         }
 
@@ -88,18 +40,11 @@ namespace SqlSelectBuilder
             return new SqlFilterField<TEntity, TType>(field.ShortView);
         }
 
-        public SqlFilter<T> Cast<T>()
-        {
-            Contract.Ensures(Contract.Result<SqlFilter<T>>() != null);
-            return new SqlFilter<T>(Filter);
-        }
-
         public SqlFilterField<TEntity, TType> And<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
             Guard.IsNotNull(field);
-            if (alias == null)
-                alias = MetadataProvider.Instance.AliasFor<TEntity>();
+            alias = CheckAlias(alias);
             return AddFilter<TType>(GetFieldName(field, alias), AND);
         }
 
@@ -107,8 +52,7 @@ namespace SqlSelectBuilder
         {
             Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
             Guard.IsNotNull(field);
-            if (alias == null)
-                alias = MetadataProvider.Instance.AliasFor<TEntity>();
+            alias = CheckAlias(alias);
             return AddFilter<TType>(GetFieldName(field, alias), OR);
         }
 

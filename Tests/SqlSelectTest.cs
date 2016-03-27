@@ -1,5 +1,6 @@
 ﻿using System;
 using SqlSelectBuilder;
+using SqlSelectBuilder.SqlFilter;
 using Tests.Entities;
 using Xunit;
 
@@ -139,7 +140,7 @@ ORDER BY
             var joinByLambdaQry = new SqlSelect<Person>()
                 .InnerJoin<Person, Passport>((person, passport) => person.Id == passport.PersonId);
             var joinByFilterQry = new SqlSelect<Person>()
-                .InnerJoin<Passport>(SqlFilter<Person>.From(p => p.Id).EqualTo<Passport>(p => p.PersonId).Cast<Passport>());
+                .InnerJoin<Passport>(SqlFilter<Person>.From(p => p.Id).EqualTo<Passport>(p => p.PersonId));
 
             var expected =
 @"SELECT

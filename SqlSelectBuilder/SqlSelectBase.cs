@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
 {
@@ -52,7 +53,7 @@ namespace SqlSelectBuilder
             list.AddRange(fields.Select(f => CreateSqlField(MetadataProvider.GetPropertyName(f), alias)));
         }
 
-        protected SqlFilter<TJoin> GetJoinFilter<TLeft, TJoin>(BinaryExpression expression, SqlAlias<TLeft> leftAlias, SqlAlias<TJoin> joinAlias)
+        protected ISqlFilter GetJoinFilter<TLeft, TJoin>(BinaryExpression expression, SqlAlias<TLeft> leftAlias, SqlAlias<TJoin> joinAlias)
         {
             Contract.Requires(leftAlias != null);
             Contract.Requires(joinAlias != null);
@@ -63,8 +64,7 @@ namespace SqlSelectBuilder
             var rightField = CreateSqlField(MetadataProvider.GetPropertyName(expression.Right as MemberExpression), joinAlias);
 
             return SqlFilter<TLeft>.From<int>(leftField)
-                .EqualTo(rightField)
-                .Cast<TJoin>();
+                .EqualTo(rightField);
         }
 
         protected void Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)

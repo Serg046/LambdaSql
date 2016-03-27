@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using GuardExtensions;
+using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
 {

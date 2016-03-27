@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using GuardExtensions;
+using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
 {
@@ -241,7 +242,7 @@ namespace SqlSelectBuilder
             return InnerJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> InnerJoin<TJoin>(SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect<T> InnerJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Inner, condition, joinAlias);
@@ -260,7 +261,7 @@ namespace SqlSelectBuilder
             return LeftJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> LeftJoin<TJoin>(SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect<T> LeftJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Left, condition, joinAlias);
@@ -279,7 +280,7 @@ namespace SqlSelectBuilder
             return RightJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> RightJoin<TJoin>(SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect<T> RightJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Right, condition, joinAlias);
@@ -298,14 +299,14 @@ namespace SqlSelectBuilder
             return FullJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> FullJoin<TJoin>(SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect<T> FullJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Full, condition, joinAlias);
             return this;
         }
 
-        void ISqlSelect.Join<TJoin>(JoinType joinType, SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias)
+        void ISqlSelect.Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias)
         {
             switch (joinType)
             {

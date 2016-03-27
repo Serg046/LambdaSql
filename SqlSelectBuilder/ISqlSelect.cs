@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
 {
@@ -32,7 +33,7 @@ namespace SqlSelectBuilder
         void OrderBy<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
-        void Join<TJoin>(JoinType joinType, SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias = null);
+        void Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null);
 
         void Where(ISqlFilter filter);
         void Having(ISqlFilter filter);
@@ -123,7 +124,7 @@ namespace SqlSelectBuilder
             throw new NotImplementedException();
         }
 
-        public void Join<TJoin>(JoinType joinType, SqlFilter<TJoin> condition, SqlAlias<TJoin> joinAlias = null)
+        public void Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Contract.Requires(condition != null);
             throw new NotImplementedException();

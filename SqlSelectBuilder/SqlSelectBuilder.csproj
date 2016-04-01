@@ -84,6 +84,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\dotnet\System.Collections.Immutable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -107,13 +111,16 @@
     <Compile Include="SqlFilter\SqlFilter.cs" />
     <Compile Include="SqlFilter\SqlFilterBase.cs" />
     <Compile Include="SqlFilter\SqlFilterField.cs" />
+    <Compile Include="SqlFilter\SqlFilterItem.cs" />
     <Compile Include="SqlJoin.cs" />
     <Compile Include="SqlSelect.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlSelectBase.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="SqlSelectBuilder.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

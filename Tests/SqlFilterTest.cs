@@ -84,5 +84,27 @@ namespace Tests
                 "pe.Id = 5 AND (pa.PersonId = 5 AND pa.Number IS NOT NULL OR (pe.Name = 'Sergey' OR pe.Name LIKE '%exception%'))",
                 filter.Filter);
         }
+
+        [Fact]
+        public void WithoutAliases()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5)
+                .And(m => m.Name).EqualTo("Sergey");
+
+            Assert.Equal("Id = 5 AND Name = 'Sergey'", filter.WithoutAliases().Filter);
+            Assert.Equal("pe.Id = 5 AND pe.Name = 'Sergey'", filter.Filter);
+        }
+
+        [Fact]
+        public void WithAliases()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5)
+                .And(m => m.Name).EqualTo("Sergey");
+            var filterWithoutAliases = filter.WithoutAliases();
+
+            Assert.Equal("Id = 5 AND Name = 'Sergey'", filterWithoutAliases.Filter);
+            Assert.Equal("pe.Id = 5 AND pe.Name = 'Sergey'", filter.Filter);
+            Assert.Equal("pe.Id = 5 AND pe.Name = 'Sergey'", filterWithoutAliases.WithAliases().Filter);
+        }
     }
 }

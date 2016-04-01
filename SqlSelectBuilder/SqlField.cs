@@ -46,7 +46,9 @@ namespace SqlSelectBuilder
 
         private StringBuilder GetShortViewBuilder()
         {
-            var sb = new StringBuilder(Alias.Value + "." + Name);
+            var sb = Alias != null && Alias.Value.IsNotEmpty()
+                ? new StringBuilder(Alias.Value + "." + Name)
+                : new StringBuilder(Name);
             if (Aggregation != null)
                 sb.Insert(0, Aggregation + "(").Append(")");
             return sb;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -12,27 +13,25 @@ namespace SqlSelectBuilder.SqlFilter
     public class RestrictedSqlFilterField<TEntity, TType, TResult>
         where TResult : SqlFilterBase<TEntity>
     {
-        private readonly string _filter;
-        private readonly string _field;
+        private readonly ImmutableList<ISqlFilterItem> _sqlFilterItems;
+        private readonly SqlFilterItem _currentItem;
 
-        internal RestrictedSqlFilterField(string field)
+        internal RestrictedSqlFilterField(ImmutableList<ISqlFilterItem> sqlFilterItems, SqlFilterItem currentItem)
         {
-            Contract.Requires(field.IsNotEmpty());
-            _filter = string.Empty;
-            _field = field;
+            Guard.IsNotNull(sqlFilterItems);
+            Guard.IsNotNull(currentItem);
+            _sqlFilterItems = sqlFilterItems;
+            _currentItem = currentItem;
         }
 
-        internal RestrictedSqlFilterField(string filter, string field)
+        protected virtual TResult BuildFilter(ImmutableList<ISqlFilterItem> sqlFilterItems)
         {
-            Guard.IsNotEmpty(filter);
-            Guard.IsNotEmpty(field);
-            _filter = filter;
-            _field = field;
+            return new RestrictedSqlFilter<TEntity>(sqlFilterItems) as TResult;
         }
 
-        protected virtual TResult BuildFilter(string filter)
+        protected TResult BuildFilter(string expression, params object[] args)
         {
-            return new RestrictedSqlFilter<TEntity>(filter) as TResult;
+            return BuildFilter(_sqlFilterItems.Add(_currentItem.SetExpression(expression, args)));
         }
 
         protected SqlAlias<T> CheckAlias<T>(SqlAlias<T> alias)
@@ -40,30 +39,31 @@ namespace SqlSelectBuilder.SqlFilter
             return alias ?? MetadataProvider.Instance.AliasFor<T>();
         }
 
-        public TResult SatisfyLambda(Func<string, IParameterConverter, string> filter)
+        public TResult SatisfyLambda(Func<ISqlField, IParameterConverter, string> filter)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(filter);
-            return BuildFilter(_filter + filter(_field, MetadataProvider.Instance));
+            return BuildFilter(filter(_currentItem.SqlField, MetadataProvider.Instance));
         }
 
         public TResult IsNull()
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
-            return BuildFilter(_filter + _field + " IS NULL");
+            return BuildFilter("{0} IS NULL", _currentItem.SqlField);
         }
 
         public TResult IsNotNull()
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
-            return BuildFilter(_filter + _field + " IS NOT NULL");
+            return BuildFilter("{0} IS NOT NULL", _currentItem.SqlField);
         }
 
         public TResult Like(string value)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotEmpty(value);
-            return BuildFilter($"{_filter}{_field} LIKE {MetadataProvider.Instance.ParameterToString(value)}");
+            return BuildFilter("{0} LIKE " + MetadataProvider.Instance.ParameterToString(value),
+                _currentItem.SqlField);
         }
 
         //----------------------------------------------------------------------------
@@ -73,7 +73,26 @@ namespace SqlSelectBuilder.SqlFilter
             Contract.Requires(logicOperator.IsNotEmpty());
             Contract.Requires(value.IsNotEmpty());
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
-            return BuildFilter($"{_filter}{_field} {logicOperator} {value}");
+            return BuildFilter("{0} " + logicOperator + " " + value, _currentItem.SqlField);
+        }
+
+        protected TResult LogicFilter(string logicOperator, ISqlField sqlField)
+        {
+            Contract.Requires(logicOperator.IsNotEmpty());
+            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
+            Guard.IsNotNull(sqlField);
+            return BuildFilter("{0} " + logicOperator + " {1}", _currentItem.SqlField, sqlField);
+        }
+
+        protected TResult LogicFilter<T>(string logicOperator, LambdaExpression field, SqlAlias<T> alias)
+        {
+            Contract.Requires(logicOperator.IsNotEmpty());
+            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
+            Guard.IsNotNull(field);
+
+            alias = CheckAlias(alias);
+            var sqlField = new SqlField<T>() {Alias = alias, Name = MetadataProvider.Instance.GetPropertyName(field)};
+            return LogicFilter(logicOperator, sqlField);
         }
 
         //----------------------------------------------------------------------------
@@ -88,15 +107,14 @@ namespace SqlSelectBuilder.SqlFilter
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            return LogicFilter("=", field.ShortView);
+            return LogicFilter("=", field);
         }
 
         public TResult EqualTo(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            alias = CheckAlias(alias);
-            return LogicFilter("=", alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field));
+            return LogicFilter("=", field, alias);
         }
 
         //----------------------------------------------------------------------------
@@ -111,15 +129,14 @@ namespace SqlSelectBuilder.SqlFilter
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            return LogicFilter("<>", field.ShortView);
+            return LogicFilter("<>", field);
         }
 
         public TResult NotEqualTo(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            alias = CheckAlias(alias);
-            return LogicFilter("<>", alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field));
+            return LogicFilter("<>", field, alias);
         }
 
         //----------------------------------------------------------------------------
@@ -134,15 +151,14 @@ namespace SqlSelectBuilder.SqlFilter
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            return LogicFilter(">", field.ShortView);
+            return LogicFilter(">", field);
         }
 
         public TResult GreaterThan(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            alias = CheckAlias(alias);
-            return LogicFilter(">", alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field));
+            return LogicFilter(">", field, alias);
         }
 
         //----------------------------------------------------------------------------
@@ -157,15 +173,14 @@ namespace SqlSelectBuilder.SqlFilter
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            return LogicFilter(">=", field.ShortView);
+            return LogicFilter(">=", field);
         }
 
         public TResult GreaterThanOrEqual(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            alias = CheckAlias(alias);
-            return LogicFilter(">=", alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field));
+            return LogicFilter(">=", field, alias);
         }
 
         //----------------------------------------------------------------------------
@@ -180,15 +195,14 @@ namespace SqlSelectBuilder.SqlFilter
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            return LogicFilter("<", field.ShortView);
+            return LogicFilter("<", field);
         }
 
         public TResult LessThan(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            alias = CheckAlias(alias);
-            return LogicFilter("<", alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field));
+            return LogicFilter("<", field, alias);
         }
 
         //----------------------------------------------------------------------------
@@ -203,15 +217,14 @@ namespace SqlSelectBuilder.SqlFilter
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            return LogicFilter("<=", field.ShortView);
+            return LogicFilter("<=", field);
         }
 
         public TResult LessThanOrEqual(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Guard.IsNotNull(field);
-            alias = CheckAlias(alias);
-            return LogicFilter("<=", alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field));
+            return LogicFilter("<=", field, alias);
         }
 
         //----------------------------------------------------------------------------
@@ -234,7 +247,7 @@ namespace SqlSelectBuilder.SqlFilter
             Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
             Contract.EndContractBlock();
             var parameters = string.Join(",", values.Select(v => MetadataProvider.Instance.ParameterToString(v)));
-            return BuildFilter($"{_filter}{_field} IN ({parameters})");
+            return BuildFilter("{0} IN (" + parameters + ")", _currentItem.SqlField);
         }
 
         //----------------------------------------------------------------------------

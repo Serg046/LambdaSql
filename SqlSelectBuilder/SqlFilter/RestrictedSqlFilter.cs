@@ -86,5 +86,19 @@ namespace SqlSelectBuilder.SqlFilter
                 .Add(SqlFilterItems.Build(")"));
             return new RestrictedSqlFilter<TEntity>(items);
         }
+
+        public RestrictedSqlFilter<TEntity> WithoutAliases()
+        {
+            var filter = new RestrictedSqlFilter<TEntity>(FilterItems);
+            filter.MustBeWithoutAliases = true;
+            return filter;
+        }
+
+        public RestrictedSqlFilter<TEntity> WithAliases()
+        {
+            var filter = new RestrictedSqlFilter<TEntity>(FilterItems);
+            filter.MustBeWithoutAliases = false;
+            return filter;
+        }
     }
 }

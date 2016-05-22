@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SqlSelectBuilder</RootNamespace>
     <AssemblyName>SqlSelectBuilder</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <CodeContractsAssemblyMode>0</CodeContractsAssemblyMode>
@@ -80,25 +80,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GuardExtensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GuardExtensions.1.0.0.1\lib\GuardExtensions.dll</HintPath>
+      <HintPath>..\packages\GuardExtensions.1.1.0.0\lib\GuardExtensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\dotnet\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IMetadataProvider.cs" />
+    <Compile Include="ImmutableList.cs" />
     <Compile Include="ISqlField.cs" />
     <Compile Include="ISqlSelect.cs" />
     <Compile Include="SqlFilter\RestrictedSqlFilter.cs" />

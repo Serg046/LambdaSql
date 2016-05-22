@@ -1,57 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Text;
 using GuardExtensions;
 using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
 {
-    [ContractClass(typeof(ISqlJoinContract))]
     public interface ISqlJoin
     {
         JoinType JoinType { get; }
         Type JoinEntityType { get; }
         ISqlAlias JoinAlias { get; }
         ISqlFilter JoinCondition { get; }
-    }
-
-    [ContractClassFor(typeof(ISqlJoin))]
-    [ExcludeFromCodeCoverage]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty")]
-    internal abstract class ISqlJoinContract : ISqlJoin
-    {
-        public ISqlAlias JoinAlias
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<ISqlAlias>() != null);
-                throw new NotImplementedException();
-            }
-        }
-
-        public ISqlFilter JoinCondition
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<ISqlFilter>() != null);
-                throw new NotImplementedException();
-            }
-        }
-
-        public Type JoinEntityType
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<Type>() != null);
-                throw new NotImplementedException();
-            }
-        }
-
-        public JoinType JoinType { get; }
     }
 
     public enum JoinType

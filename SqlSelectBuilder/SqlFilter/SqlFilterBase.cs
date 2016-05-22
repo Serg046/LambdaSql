@@ -1,32 +1,12 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Linq;
+﻿using System.Linq;
 using System.Linq.Expressions;
 using GuardExtensions;
 
 namespace SqlSelectBuilder.SqlFilter
 {
-    [ContractClass(typeof(ISqlFilterContract))]
     public interface ISqlFilter
     {
         string Filter { get; }
-    }
-
-    [ContractClassFor(typeof(ISqlFilter))]
-    [ExcludeFromCodeCoverage]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal abstract class ISqlFilterContract : ISqlFilter
-    {
-        public string Filter
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<string>().IsNotEmpty());
-                throw new NotImplementedException();
-            }
-        }
     }
 
     public interface ISqlFilterItems
@@ -61,9 +41,6 @@ namespace SqlSelectBuilder.SqlFilter
 
         protected static string GetFieldName(LambdaExpression field, ISqlAlias alias)
         {
-            Contract.Requires(field != null);
-            Contract.Requires(alias != null);
-            Contract.Ensures(Contract.Result<string>().IsNotEmpty());
             var fieldName = MetadataProvider.Instance.GetPropertyName(field);
             return alias.Value + "." + fieldName;
         }

@@ -21,9 +21,11 @@ namespace SqlSelectBuilder
         void AddFields<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
+        void GroupBy(ISqlField field);
         void GroupBy<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
+        void OrderBy(ISqlField field);
         void OrderBy<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 

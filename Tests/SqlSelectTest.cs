@@ -152,5 +152,53 @@ INNER JOIN
             Assert.Equal(expected, joinByLambdaQry.CommandText);
             Assert.Equal(expected, joinByFilterQry.CommandText);
         }
+
+        [Fact]
+        public void LambdaJoinWithInvertOrder()
+        {
+            var joinByLambdaQry = new SqlSelect<Person>()
+                .InnerJoin<Person, Passport>((person, passport) => passport.PersonId == person.Id);
+
+            var expected =
+@"SELECT
+    *
+FROM
+    Person pe
+INNER JOIN
+    Passport pa ON pa.PersonId = pe.Id";
+            Assert.Equal(expected, joinByLambdaQry.CommandText);
+        }
+
+        [Fact]
+        public void TotalTest()
+        {
+            var countFld = SqlField<Person>.Count(p => p.LastName);
+            var select = new SqlSelect<Person>()
+                .AddFields(p => p.LastName, p => p.Name)
+                .AddFields<Passport>(p => p.Number)
+                .AddField(countFld)
+                .InnerJoin<Person, Passport>((person, passport) => person.Id == passport.PersonId)
+                .Where(SqlFilter<Passport>.From(p => p.Number).IsNotNull().And(p => p.Number).NotEqualTo("3812-808316"))
+                .GroupBy(p => p.LastName)
+                .Having(SqlFilter<Person>.From<int>(countFld).GreaterThan(2))
+                .OrderBy(p => p.LastName);
+
+            var expected =
+@"SELECT
+    pe.LastName, pe.Name, pa.Number, COUNT(pe.LastName)
+FROM
+    Person pe
+INNER JOIN
+    Passport pa ON pe.Id = pa.PersonId
+WHERE
+    pa.Number IS NOT NULL AND pa.Number <> '3812-808316'
+GROUP BY
+    pe.LastName
+HAVING
+    COUNT(pe.LastName) > 2
+ORDER BY
+    pe.LastName";
+            Assert.Equal(expected, select.CommandText);
+        }
     }
 }

@@ -39,7 +39,7 @@ namespace SqlSelectBuilder
                 if (GroupByFields.Count > 0)
                 {
                     sb.Append(SEPARATOR).Append("GROUP BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(",", GroupByFields));
+                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", GroupByFields));
                 }
                 if (HavingFilter != null)
                 {
@@ -49,7 +49,7 @@ namespace SqlSelectBuilder
                 if (OrderByFields.Count > 0)
                 {
                     sb.Append(SEPARATOR).Append("ORDER BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(",", OrderByFields));
+                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", OrderByFields));
                 }
                 return sb.ToString();
             }
@@ -81,7 +81,7 @@ namespace SqlSelectBuilder
                 if (TopByPercent)
                     sb.Append("PERCENT ");
             }
-            sb.Append(SelectFields.Count == 0 ? "*" : string.Join(",", SelectFields)).Append(SEPARATOR);
+            sb.Append(SelectFields.Count == 0 ? "*" : string.Join(", ", SelectFields)).Append(SEPARATOR);
         }
 
         public override string ToString()
@@ -164,6 +164,16 @@ namespace SqlSelectBuilder
             return this;
         }
 
+        //-------------------------------------------------------------------------
+
+        void ISqlSelect.GroupBy(ISqlField field) => GroupBy(field);
+        public SqlSelect<T> GroupBy(ISqlField field)
+        {
+            Guard.IsNotNull(field);
+            GroupByFields.Add(field);
+            return this;
+        }
+
         public SqlSelect<T> GroupBy(params Expression<Func<T, object>>[] fields)
         {
             Guard.IsNotNull(fields);
@@ -192,6 +202,16 @@ namespace SqlSelectBuilder
             Guard.IsNotNull(alias);
             Guard.IsNotNull(fields);
             AddFields(alias, fields, GroupByFields);
+            return this;
+        }
+
+        //-------------------------------------------------------------------------
+
+        void ISqlSelect.OrderBy(ISqlField field) => OrderBy(field);
+        public SqlSelect<T> OrderBy(ISqlField field)
+        {
+            Guard.IsNotNull(field);
+            OrderByFields.Add(field);
             return this;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using GuardExtensions;
 using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
@@ -59,8 +60,19 @@ namespace SqlSelectBuilder
             if (expression == null || expression.NodeType != ExpressionType.Equal)
                 throw new JoinException("Invalid join expression");
 
-            var leftField = CreateSqlField(MetadataProvider.GetPropertyName(expression.Left as MemberExpression), leftAlias);
-            var rightField = CreateSqlField(MetadataProvider.GetPropertyName(expression.Right as MemberExpression), joinAlias);
+            var leftExpr = expression.Left as MemberExpression;
+            var rightExpr = expression.Right as MemberExpression;
+
+            Guard.IsNotNull(leftExpr);
+            Guard.IsNotNull(rightExpr);
+
+            var leftField = leftExpr.Expression.Type == leftAlias.EntityType
+                ? (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(leftExpr), leftAlias)
+                : (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(leftExpr), joinAlias);
+
+            var rightField = leftField.Alias.EntityType == leftAlias.EntityType
+                ? (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(rightExpr), joinAlias)
+                : (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(rightExpr), leftAlias);
 
             return SqlFilter<TLeft>.From<int>(leftField)
                 .EqualTo(rightField);

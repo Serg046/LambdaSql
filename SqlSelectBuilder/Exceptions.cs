@@ -18,4 +18,12 @@ namespace SqlSelectBuilder
             Guard.IsNotNull(message);
         }
     }
+
+    public class IncorrectAliasException : Exception
+    {
+        public IncorrectAliasException(string message) : base(message)
+        {
+            Guard.IsNotNull(message);
+        }
+    }
 }

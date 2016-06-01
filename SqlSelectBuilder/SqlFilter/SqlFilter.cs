@@ -2,8 +2,9 @@
 using System.Diagnostics.Contracts;
 using System.Linq.Expressions;
 using GuardExtensions;
+// ReSharper disable CheckNamespace
 
-namespace SqlSelectBuilder.SqlFilter
+namespace SqlSelectBuilder
 {
     public class SqlFilter<TEntity> : SqlFilterBase<TEntity>
     {
@@ -12,7 +13,7 @@ namespace SqlSelectBuilder.SqlFilter
         }
 
         private SqlFilterField<TEntity, TType> AddFilter<TType>(
-            ImmutableList<ISqlFilterItem> items, LambdaExpression field, SqlAlias<TEntity> alias)
+            ImmutableList<ISqlFilterItem> items, LambdaExpression field, ISqlAlias alias)
         {
             Guard.IsNotNull(field);
             return new SqlFilterField<TEntity, TType>(items, BuildSqlFilterItem(field, alias));
@@ -25,7 +26,7 @@ namespace SqlSelectBuilder.SqlFilter
             return new SqlFilterField<TEntity, TType>(items, BuildSqlFilterItem(field));
         }
 
-        public static SqlFilterField<TEntity, TType> From<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
+        public static SqlFilterField<TEntity, TType> From<TType>(Expression<Func<TEntity, TType>> field, ISqlAlias alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
             Guard.IsNotNull(field);
@@ -39,14 +40,14 @@ namespace SqlSelectBuilder.SqlFilter
             return new SqlFilterField<TEntity, TType>(ImmutableList<ISqlFilterItem>.Empty, BuildSqlFilterItem(field));
         }
 
-        public SqlFilterField<TEntity, TType> And<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
+        public SqlFilterField<TEntity, TType> And<TType>(Expression<Func<TEntity, TType>> field, ISqlAlias alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
             Guard.IsNotNull(field);
             return AddFilter<TType>(FilterItems.Add(SqlFilterItems.And), field, alias);
         }
 
-        public SqlFilterField<TEntity, TType> Or<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
+        public SqlFilterField<TEntity, TType> Or<TType>(Expression<Func<TEntity, TType>> field, ISqlAlias alias = null)
         {
             Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
             Guard.IsNotNull(field);

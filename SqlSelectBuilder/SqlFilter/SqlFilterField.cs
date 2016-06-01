@@ -2,8 +2,9 @@
 using System.Diagnostics.Contracts;
 using System.Linq.Expressions;
 using GuardExtensions;
+// ReSharper disable CheckNamespace
 
-namespace SqlSelectBuilder.SqlFilter
+namespace SqlSelectBuilder
 {
     public class SqlFilterField<TEntity, TType> : RestrictedSqlFilterField<TEntity, TType, SqlFilter<TEntity>>
     {

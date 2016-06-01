@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using GuardExtensions;
 
 namespace SqlSelectBuilder
 {
-    public class SqlSelect<T> : SqlSelectBase, ISqlSelect
+    public class SqlSelect : SqlSelectBase, ISqlSelect
     {
-        public SqlSelect() : base(SqlSelectBuilder.MetadataProvider.Instance.AliasFor<T>())
+        private readonly ISqlSelect _innerSqlSelect;
+        private readonly ISqlAlias _alias;
+
+        public SqlSelect(ISqlSelect innerSqlSelect, ISqlAlias alias) : base(alias)
         {
+            Guard.IsNotNull(innerSqlSelect, alias);
+            _innerSqlSelect = innerSqlSelect;
+            _alias = alias;
         }
 
         public string CommandText
@@ -16,37 +24,65 @@ namespace SqlSelectBuilder
             get
             {
                 CheckAsAliases();
+                CheckSelectedFields();
+                CheckFieldAliases();
+                CheckFilterAliases();
                 var sb = new StringBuilder("SELECT").Append(SEPARATOR_WITH_OFFSET);
                 SelectedFields(sb);
-                sb.Append("FROM").Append(SEPARATOR_WITH_OFFSET)
-                    .Append(MetadataProvider.GetTableName<T>())
-                    .Append(" ").Append(MetadataProvider.AliasFor<T>().Value);
-                if (Joins.Count > 0)
-                {
-                    sb.Append(SEPARATOR).Append(string.Join(SEPARATOR, Joins));
-                }
-                if (WhereFilter != null)
-                {
-                    sb.Append(SEPARATOR).Append("WHERE")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(WhereFilter.Filter);
-                }
-                if (GroupByFields.Count > 0)
-                {
-                    sb.Append(SEPARATOR).Append("GROUP BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", GroupByFields));
-                }
-                if (HavingFilter != null)
-                {
-                    sb.Append(SEPARATOR).Append("HAVING")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(HavingFilter.Filter);
-                }
-                if (OrderByFields.Count > 0)
-                {
-                    sb.Append(SEPARATOR).Append("ORDER BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", OrderByFields));
-                }
+                sb.Append("FROM")
+                    .Append(SEPARATOR).Append("(").Append(SEPARATOR_WITH_OFFSET)
+                    .Append(_innerSqlSelect.CommandText.Replace(SEPARATOR, SEPARATOR_WITH_OFFSET))
+                    .Append(SEPARATOR).Append(") AS ").Append(_alias.Value);
                 return sb.ToString();
             }
+        }
+
+        private void CheckSelectedFields()
+        {
+            foreach (var selectField in SelectFields)
+            {
+                if (!_innerSqlSelect.SelectFields.Any(f => f.Name == selectField.Name
+                                                           && f.EntityType == selectField.EntityType))
+                {
+                    throw new InvalidOperationException(
+                        $"'{selectField}' is not registered in the inner select query.");
+                }
+            }
+        }
+
+        private void CheckFieldAliases()
+        {
+            // ReSharper disable PossibleMultipleEnumeration
+            var allFields = SelectFields
+                .Union(GroupByFields)
+                .Union(OrderByFields)
+                .Where(f => f.Alias.Value != _alias.Value);
+            if (allFields.Any())
+                throw new IncorrectAliasException($"The following user aliases are incorrect: {string.Join(", ", allFields.Select(f => f.Alias))}.");
+            // ReSharper restore PossibleMultipleEnumeration
+        }
+
+        private void CheckFilterAliases()
+        {
+            // ReSharper disable PossibleMultipleEnumeration
+            IEnumerable<SqlFilterItem> items = null;
+            if (Info.Where != null)
+                items = ((ISqlFilterItems)Info.Where).FilterItems.OfType<SqlFilterItem>();
+            if (Info.Having != null)
+            {
+                if (items == null)
+                    items = ((ISqlFilterItems)Info.Having).FilterItems.OfType<SqlFilterItem>();
+                else
+                    items = items.Concat(((ISqlFilterItems)Info.Having).FilterItems.OfType<SqlFilterItem>());
+            }
+            if (items != null)
+            {
+                items = items.Where(item => item.SqlField.Alias.Value != _alias.Value);
+                if (items.Any())
+                    throw new IncorrectAliasException(
+                        $"The following user aliases are incorrect: {string.Join(", ", items.Select(i => i.SqlField.Alias))}.");
+            }
+            // ReSharper restore PossibleMultipleEnumeration
         }
 
         public override string ToString()
@@ -54,10 +90,10 @@ namespace SqlSelectBuilder
             return CommandText;
         }
 
-        public Type EntityType => typeof(T);
+        public Type EntityType => null;
 
         ISqlSelect ISqlSelect.Top(int top, bool topByPercent) => Top(top, topByPercent);
-        public SqlSelect<T> Top(int top, bool topByPercent = false)
+        public SqlSelect Top(int top, bool topByPercent = false)
         {
             if (!topByPercent)
             {
@@ -74,14 +110,14 @@ namespace SqlSelectBuilder
             return this;
         }
 
-        public SqlSelect<T> Distinct()
+        public SqlSelect Distinct()
         {
             Distinct(true);
             return this;
         }
 
         ISqlSelect ISqlSelect.Distinct(bool isDistinct) => Distinct(isDistinct);
-        public SqlSelect<T> Distinct(bool isDistinct)
+        public SqlSelect Distinct(bool isDistinct)
         {
             IsDistinct = isDistinct;
             return this;
@@ -90,129 +126,66 @@ namespace SqlSelectBuilder
         //-------------------------------------------------------------------------
 
         ISqlSelect ISqlSelect.AddFields(ISqlField[] fields) => AddFields(fields);
-        public SqlSelect<T> AddFields(params ISqlField[] fields)
+        public SqlSelect AddFields(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
             SelectFields.AddRange(fields);
             return this;
         }
 
-        public SqlSelect<T> AddFields(params Expression<Func<T, object>>[] fields)
+        public SqlSelect AddFields<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<T>(), fields, SelectFields);
+            AddFields(_alias, fields, SelectFields);
             return this;
         }
 
-        public SqlSelect<T> AddFields<TEntity>(params Expression<Func<TEntity, object>>[] fields)
-        {
-            Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<TEntity>(), fields, SelectFields);
-            return this;
-        }
-
-        ISqlSelect ISqlSelect.AddFields<TEntity>(SqlAlias<TEntity> alias,
-            params Expression<Func<TEntity, object>>[] fields)
-        {
-            if (alias == null)
-                MetadataProvider.AliasFor<TEntity>();
-            return AddFields(alias, fields);
-        }
-
-        public SqlSelect<T> AddFields<TEntity>(SqlAlias<TEntity> alias,
-            params Expression<Func<TEntity, object>>[] fields)
-        {
-            Guard.IsNotNull(alias);
-            Guard.IsNotNull(fields);
-            AddFields(alias, fields, SelectFields);
-            return this;
-        }
+        ISqlSelect ISqlSelect.AddFields<TEntity>(SqlAlias<TEntity> alias, params Expression<Func<TEntity, object>>[] fields)
+            => AddFields(fields);
 
         //-------------------------------------------------------------------------
 
         ISqlSelect ISqlSelect.GroupBy(ISqlField[] fields) => GroupBy(fields);
-        public SqlSelect<T> GroupBy(params ISqlField[] fields)
+        public SqlSelect GroupBy(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
             GroupByFields.AddRange(fields);
             return this;
         }
 
-        public SqlSelect<T> GroupBy(params Expression<Func<T, object>>[] fields)
+        public SqlSelect GroupBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<T>(), fields, GroupByFields);
+            AddFields(_alias, fields, GroupByFields);
             return this;
         }
 
-        public SqlSelect<T> GroupBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
-        {
-            Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<TEntity>(), fields, GroupByFields);
-            return this;
-        }
-
-        ISqlSelect ISqlSelect.GroupBy<TEntity>(SqlAlias<TEntity> alias,
-            params Expression<Func<TEntity, object>>[] fields)
-        {
-            if (alias == null)
-                MetadataProvider.AliasFor<TEntity>();
-            return GroupBy(alias, fields);
-        }
-
-        public SqlSelect<T> GroupBy<TEntity>(SqlAlias<TEntity> alias,
-            params Expression<Func<TEntity, object>>[] fields)
-        {
-            Guard.IsNotNull(alias);
-            Guard.IsNotNull(fields);
-            AddFields(alias, fields, GroupByFields);
-            return this;
-        }
+        ISqlSelect ISqlSelect.GroupBy<TEntity>(SqlAlias<TEntity> alias, params Expression<Func<TEntity, object>>[] fields)
+            => GroupBy(fields);
 
         //-------------------------------------------------------------------------
 
         ISqlSelect ISqlSelect.OrderBy(ISqlField[] fields) => OrderBy(fields);
-        public SqlSelect<T> OrderBy(params ISqlField[] fields)
+        public SqlSelect OrderBy(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
             OrderByFields.AddRange(fields);
             return this;
         }
 
-        public SqlSelect<T> OrderBy(params Expression<Func<T, object>>[] fields)
+        public SqlSelect OrderBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<T>(), fields, OrderByFields);
+            AddFields(_alias, fields, OrderByFields);
             return this;
         }
 
-        public SqlSelect<T> OrderBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
-        {
-            Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<TEntity>(), fields, OrderByFields);
-            return this;
-        }
-
-        ISqlSelect ISqlSelect.OrderBy<TEntity>(SqlAlias<TEntity> alias,
-            params Expression<Func<TEntity, object>>[] fields)
-        {
-            if (alias == null)
-                MetadataProvider.AliasFor<TEntity>();
-            return OrderBy(alias, fields);
-        }
-
-        public SqlSelect<T> OrderBy<TEntity>(SqlAlias<TEntity> alias,
-            params Expression<Func<TEntity, object>>[] fields)
-        {
-            Guard.IsNotNull(alias);
-            Guard.IsNotNull(fields);
-            AddFields(alias, fields, OrderByFields);
-            return this;
-        }
+        ISqlSelect ISqlSelect.OrderBy<TEntity>(SqlAlias<TEntity> alias, params Expression<Func<TEntity, object>>[] fields)
+            => OrderBy(fields);
 
         //-------------------------------------------------------------------------
 
-        public SqlSelect<T> InnerJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
+        public SqlSelect InnerJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
@@ -224,14 +197,14 @@ namespace SqlSelectBuilder
             return InnerJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> InnerJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect InnerJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Inner, condition, joinAlias);
             return this;
         }
 
-        public SqlSelect<T> LeftJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
+        public SqlSelect LeftJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
@@ -243,14 +216,14 @@ namespace SqlSelectBuilder
             return LeftJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> LeftJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect LeftJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Left, condition, joinAlias);
             return this;
         }
 
-        public SqlSelect<T> RightJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
+        public SqlSelect RightJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
@@ -262,14 +235,14 @@ namespace SqlSelectBuilder
             return RightJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> RightJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect RightJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Right, condition, joinAlias);
             return this;
         }
 
-        public SqlSelect<T> FullJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
+        public SqlSelect FullJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
@@ -281,7 +254,7 @@ namespace SqlSelectBuilder
             return FullJoin(GetJoinFilter(condition.Body as BinaryExpression, leftAlias, joinAlias), joinAlias);
         }
 
-        public SqlSelect<T> FullJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
+        public SqlSelect FullJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
             Join(JoinType.Full, condition, joinAlias);
@@ -314,7 +287,7 @@ namespace SqlSelectBuilder
         //-------------------------------------------------------------------------
 
         ISqlSelect ISqlSelect.Where(ISqlFilter filter) => Where(filter);
-        public SqlSelect<T> Where(ISqlFilter filter)
+        public SqlSelect Where(ISqlFilter filter)
         {
             Guard.IsNotNull(filter);
             WhereFilter = filter;
@@ -322,7 +295,7 @@ namespace SqlSelectBuilder
         }
 
         ISqlSelect ISqlSelect.Having(ISqlFilter filter) => Having(filter);
-        public SqlSelect<T> Having(ISqlFilter filter)
+        public SqlSelect Having(ISqlFilter filter)
         {
             Guard.IsNotNull(filter);
             HavingFilter = filter;

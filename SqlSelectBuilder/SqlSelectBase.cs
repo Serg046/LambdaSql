@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using GuardExtensions;
-using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
 {
-    public class SqlSelectBase<T>
+    public class SqlSelectBase : ISqlSelectInfo
     {
+        protected const string SEPARATOR = "\r\n";
+        protected const string SEPARATOR_WITH_OFFSET = "\r\n    ";
+
         protected readonly IMetadataProvider MetadataProvider = SqlSelectBuilder.MetadataProvider.Instance;
+        private readonly ISqlAlias _alias;
         protected int? TopLimit;
         protected bool TopByPercent;
         protected bool IsDistinct;
@@ -21,8 +24,9 @@ namespace SqlSelectBuilder
         protected ISqlFilter WhereFilter;
         protected ISqlFilter HavingFilter;
 
-        public SqlSelectBase()
+        public SqlSelectBase(ISqlAlias alias)
         {
+            _alias = alias;
             Info = new SqlInfo(this);
             SelectFields = new List<ISqlField>();
             GroupByFields = new List<ISqlField>();
@@ -32,11 +36,17 @@ namespace SqlSelectBuilder
 
         public SqlInfo Info { get; }
 
-        protected SqlField<TEntity> CreateSqlField<TEntity>(string name, SqlAlias<TEntity> alias)
+        IEnumerable<ISqlField> ISqlSelectInfo.SelectFields => Info.SelectFields;
+        IEnumerable<ISqlField> ISqlSelectInfo.GroupByFields => Info.GroupByFields;
+        IEnumerable<ISqlField> ISqlSelectInfo.OrderByFields => Info.OrderByFields;
+        IEnumerable<ISqlAlias> ISqlSelectInfo.TableAliases => Info.TableAliases;
+        ISqlFilter ISqlSelectInfo.WhereFilter => Info.Where;
+        ISqlFilter ISqlSelectInfo.HavingFilter => Info.Having;
+
+        protected SqlField<TEntity> CreateSqlField<TEntity>(string name, ISqlAlias alias)
         {
-            Contract.Requires(name.IsNotEmpty());
-            Contract.Requires(alias != null);
-            Contract.Ensures(Contract.Result<SqlField<TEntity>>() != null);
+            Guard.IsNotEmpty(name);
+            Guard.IsNotNull(alias);
             return new SqlField<TEntity>()
             {
                 Name = name,
@@ -44,19 +54,18 @@ namespace SqlSelectBuilder
             };
         }
 
-        protected void AddFields<TEntity>(SqlAlias<TEntity> alias, IEnumerable<Expression<Func<TEntity, object>>> fields, List<ISqlField> list)
+        protected void AddFields<TEntity>(ISqlAlias alias, IEnumerable<Expression<Func<TEntity, object>>> fields, List<ISqlField> list)
         {
-            Contract.Requires(alias != null);
             if (fields == null)
                 throw new ArgumentNullException(nameof(fields));
 
-            list.AddRange(fields.Select(f => CreateSqlField(MetadataProvider.GetPropertyName(f), alias)));
+            list.AddRange(fields.Select(f => CreateSqlField<TEntity>(MetadataProvider.GetPropertyName(f), alias)));
         }
 
         protected ISqlFilter GetJoinFilter<TLeft, TJoin>(BinaryExpression expression, SqlAlias<TLeft> leftAlias, SqlAlias<TJoin> joinAlias)
         {
-            Contract.Requires(leftAlias != null);
-            Contract.Requires(joinAlias != null);
+            Guard.IsNotNull(leftAlias);
+            Guard.IsNotNull(joinAlias);
             if (expression == null || expression.NodeType != ExpressionType.Equal)
                 throw new JoinException("Invalid join expression");
 
@@ -67,12 +76,12 @@ namespace SqlSelectBuilder
             Guard.IsNotNull(rightExpr);
 
             var leftField = leftExpr.Expression.Type == leftAlias.EntityType
-                ? (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(leftExpr), leftAlias)
-                : (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(leftExpr), joinAlias);
+                ? (ISqlField)CreateSqlField<TLeft>(MetadataProvider.GetPropertyName(leftExpr), leftAlias)
+                : (ISqlField)CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(leftExpr), joinAlias);
 
             var rightField = leftField.Alias.EntityType == leftAlias.EntityType
-                ? (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(rightExpr), joinAlias)
-                : (ISqlField)CreateSqlField(MetadataProvider.GetPropertyName(rightExpr), leftAlias);
+                ? (ISqlField)CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(rightExpr), joinAlias)
+                : (ISqlField)CreateSqlField<TLeft>(MetadataProvider.GetPropertyName(rightExpr), leftAlias);
 
             return SqlFilter<TLeft>.From<int>(leftField)
                 .EqualTo(rightField);
@@ -80,6 +89,7 @@ namespace SqlSelectBuilder
 
         protected void Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
+            Guard.IsNotNull(condition);
             if (joinAlias == null)
                 joinAlias = MetadataProvider.AliasFor<TJoin>();
             if (Joins.Any(j => j.JoinAlias.Value == joinAlias.Value))
@@ -89,12 +99,36 @@ namespace SqlSelectBuilder
             Joins.Add(join);
         }
 
+        protected void CheckAsAliases()
+        {
+            // ReSharper disable PossibleMultipleEnumeration
+            var allFields = SelectFields.Union(GroupByFields).Union(OrderByFields);
+            var intersect = Info.TableAliases.Select(a => a.Value).Intersect(allFields.Select(a => a.AsAlias));
+            if (intersect.Any())
+                throw new IncorrectAliasException($"The following user aliases are incorrect: {string.Join(", ", intersect)}.");
+            // ReSharper restore PossibleMultipleEnumeration
+        }
+
+        protected void SelectedFields(StringBuilder sb)
+        {
+            if (IsDistinct)
+                sb.Append("DISTINCT ");
+            if (TopLimit.HasValue)
+            {
+                sb.Append($"TOP {TopLimit} ");
+                if (TopByPercent)
+                    sb.Append("PERCENT ");
+            }
+            sb.Append(SelectFields.Count == 0 ? "*" : string.Join(", ", SelectFields)).Append(SEPARATOR);
+        }
+
         public class SqlInfo
         {
-            private readonly SqlSelectBase<T> _select;
+            private readonly SqlSelectBase _select;
 
-            public SqlInfo(SqlSelectBase<T> select)
+            public SqlInfo(SqlSelectBase select)
             {
+                Guard.IsNotNull(select);
                 _select = select;
             }
 
@@ -104,13 +138,14 @@ namespace SqlSelectBuilder
             public IList<ISqlField> GroupByFields => _select.GroupByFields;
             public IList<ISqlField> OrderByFields => _select.OrderByFields;
             public IList<ISqlJoin> Joins => _select.Joins;
-            public ISqlFilter SqlFilter => _select.WhereFilter;
+            public ISqlFilter Where => _select.WhereFilter;
+            public ISqlFilter Having => _select.HavingFilter;
 
-            public IEnumerable<ISqlAlias> Aliases
+            public IEnumerable<ISqlAlias> TableAliases
             {
                 get
                 {
-                    yield return _select.MetadataProvider.AliasFor<T>();
+                    yield return _select._alias;
                     foreach (var alias in Joins.Select(j => j.JoinAlias))
                         yield return alias;
                 }

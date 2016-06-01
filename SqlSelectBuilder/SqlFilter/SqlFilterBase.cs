@@ -1,8 +1,9 @@
 ﻿using System.Linq;
 using System.Linq.Expressions;
 using GuardExtensions;
+// ReSharper disable CheckNamespace
 
-namespace SqlSelectBuilder.SqlFilter
+namespace SqlSelectBuilder
 {
     public interface ISqlFilter
     {
@@ -34,7 +35,7 @@ namespace SqlSelectBuilder.SqlFilter
 
         public override string ToString() => Filter;
 
-        protected static SqlAlias<TEntity> CheckAlias(SqlAlias<TEntity> alias)
+        protected static ISqlAlias CheckAlias(ISqlAlias alias)
         {
             return alias ?? MetadataProvider.Instance.AliasFor<TEntity>();
         }
@@ -45,7 +46,7 @@ namespace SqlSelectBuilder.SqlFilter
             return alias.Value + "." + fieldName;
         }
 
-        internal static SqlFilterItem BuildSqlFilterItem(LambdaExpression field, SqlAlias<TEntity> alias)
+        internal static SqlFilterItem BuildSqlFilterItem(LambdaExpression field, ISqlAlias alias)
         {
             Guard.IsNotNull(field);
             alias = CheckAlias(alias);

@@ -1,6 +1,5 @@
 ﻿using System;
 using SqlSelectBuilder;
-using SqlSelectBuilder.SqlFilter;
 using Tests.Entities;
 using Xunit;
 
@@ -13,8 +12,8 @@ namespace Tests
         {
             var select = new SqlSelect<Person>()
                 .InnerJoin<Person, Passport>((person, passport) => person.Id == passport.PersonId)
-                .AddField(SqlField<Person>.Count(p => p.Id, "pa"));
-            Assert.Throws<InvalidOperationException>(() => { var cmd = select.CommandText; });
+                .AddFields(SqlField<Person>.Count(p => p.Id, "pa"));
+            Assert.Throws<IncorrectAliasException>(() => { var cmd = select.CommandText; });
         }
 
         [Fact]
@@ -82,7 +81,7 @@ WHERE
         public void GroupBy()
         {
             var select = new SqlSelect<Person>()
-                .AddField(SqlField<Person>.Count(p => p.Id))
+                .AddFields(SqlField<Person>.Count(p => p.Id))
                 .GroupBy(p => p.LastName);
 
             var expected =
@@ -99,7 +98,7 @@ GROUP BY
         public void Having()
         {
             var select = new SqlSelect<Person>()
-                .AddField(SqlField<Person>.Count(p => p.Id))
+                .AddFields(SqlField<Person>.Count(p => p.Id))
                 .GroupBy(p => p.LastName)
                 .Having(SqlFilter<Person>.From<int>(SqlField<Person>.Count(p => p.Id)).GreaterThan(2));
 
@@ -176,7 +175,7 @@ INNER JOIN
             var select = new SqlSelect<Person>()
                 .AddFields(p => p.LastName, p => p.Name)
                 .AddFields<Passport>(p => p.Number)
-                .AddField(countFld)
+                .AddFields(countFld)
                 .InnerJoin<Person, Passport>((person, passport) => person.Id == passport.PersonId)
                 .Where(SqlFilter<Passport>.From(p => p.Number).IsNotNull().And(p => p.Number).NotEqualTo("3812-808316"))
                 .GroupBy(p => p.LastName)

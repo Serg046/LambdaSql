@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SqlSelectBuilder;
-using SqlSelectBuilder.SqlFilter;
+﻿using SqlSelectBuilder;
 using Tests.Entities;
 using Xunit;
 

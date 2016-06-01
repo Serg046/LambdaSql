@@ -65,6 +65,7 @@
     <Compile Include="SqlFilterFieldTest.cs" />
     <Compile Include="SqlJoinTest.cs" />
     <Compile Include="SqlSelectTest.cs" />
+    <Compile Include="SqlSelectWrapperTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlSelectBuilder\SqlSelectBuilder.csproj">

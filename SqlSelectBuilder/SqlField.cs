@@ -24,6 +24,7 @@ namespace SqlSelectBuilder
         }
 
         public ISqlAlias Alias { get; set; }
+        public Type EntityType => typeof(TEntity);
         public string Name { get; set; }
         public string AsAlias { get; set; }
         public FieldAggregation? Aggregation { get; set; }
@@ -63,7 +64,7 @@ namespace SqlSelectBuilder
             return From(MetadataProvider.Instance.AliasFor<TEntity>(), field, asAlias);
         }
 
-        public static SqlField<TEntity> From<TType>(SqlAlias<TEntity> alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
+        public static SqlField<TEntity> From<TType>(ISqlAlias alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
         {
             Guard.IsNotNull(alias);
             Guard.IsNotNull(field);
@@ -92,7 +93,7 @@ namespace SqlSelectBuilder
             return Max(MetadataProvider.Instance.AliasFor<TEntity>(), field, asAlias);
         }
 
-        public static SqlField<TEntity> Max<TType>(SqlAlias<TEntity> alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
+        public static SqlField<TEntity> Max<TType>(ISqlAlias alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
         {
             Contract.Ensures(Contract.Result<SqlField<TEntity>>() != null);
             Guard.IsNotNull(alias);
@@ -107,7 +108,7 @@ namespace SqlSelectBuilder
             return Avg(MetadataProvider.Instance.AliasFor<TEntity>(), field, asAlias);
         }
 
-        public static SqlField<TEntity> Avg<TType>(SqlAlias<TEntity> alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
+        public static SqlField<TEntity> Avg<TType>(ISqlAlias alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
         {
             Contract.Ensures(Contract.Result<SqlField<TEntity>>() != null);
             Guard.IsNotNull(alias);
@@ -122,7 +123,7 @@ namespace SqlSelectBuilder
             return Sum(MetadataProvider.Instance.AliasFor<TEntity>(), field, asAlias);
         }
 
-        public static SqlField<TEntity> Sum<TType>(SqlAlias<TEntity> alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
+        public static SqlField<TEntity> Sum<TType>(ISqlAlias alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
         {
             Contract.Ensures(Contract.Result<SqlField<TEntity>>() != null);
             Guard.IsNotNull(alias);
@@ -137,7 +138,7 @@ namespace SqlSelectBuilder
             return Count(MetadataProvider.Instance.AliasFor<TEntity>(), field, asAlias);
         }
 
-        public static SqlField<TEntity> Count<TType>(SqlAlias<TEntity> alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
+        public static SqlField<TEntity> Count<TType>(ISqlAlias alias, Expression<Func<TEntity, TType>> field, string asAlias = null)
         {
             Contract.Ensures(Contract.Result<SqlField<TEntity>>() != null);
             Guard.IsNotNull(alias);
@@ -145,7 +146,7 @@ namespace SqlSelectBuilder
             return AggregateResult(alias, field, FieldAggregation.COUNT, asAlias);
         }
 
-        private static SqlField<TEntity> AggregateResult<TType>(SqlAlias<TEntity> alias,
+        private static SqlField<TEntity> AggregateResult<TType>(ISqlAlias alias,
             Expression<Func<TEntity, TType>> field, FieldAggregation? aggregation, string asAlias)
         {
             Contract.Ensures(Contract.Result<SqlField<TEntity>>() != null);

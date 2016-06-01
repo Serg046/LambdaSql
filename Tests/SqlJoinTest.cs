@@ -1,5 +1,4 @@
 ﻿using SqlSelectBuilder;
-using SqlSelectBuilder.SqlFilter;
 using Tests.Entities;
 using Xunit;
 

@@ -1,37 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using SqlSelectBuilder.SqlFilter;
 
 namespace SqlSelectBuilder
 {
-    public interface ISqlSelect
+    public interface ISqlSelectInfo
     {
-        Type EntityType { get; }
-        string CommandText { get; }
         IEnumerable<ISqlField> SelectFields { get; }
         IEnumerable<ISqlField> GroupByFields { get; }
         IEnumerable<ISqlField> OrderByFields { get; }
-        IEnumerable<ISqlAlias> Aliases { get; }
+        IEnumerable<ISqlAlias> TableAliases { get; }
+        ISqlFilter WhereFilter { get; }
+        ISqlFilter HavingFilter { get; }
+    }
 
-        void Top(int top, bool topByPercent = false);
-        void Distinct(bool isDistinct);
+    public interface ISqlSelect : ISqlSelectInfo
+    {
+        string CommandText { get; }
+        Type EntityType { get; }
+        ISqlSelect Top(int top, bool topByPercent = false);
+        ISqlSelect Distinct(bool isDistinct);
 
-        void AddField(ISqlField field);
-        void AddFields<TEntity>(SqlAlias<TEntity> alias = null,
+        ISqlSelect AddFields(ISqlField[] fields);
+        ISqlSelect AddFields<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
-        void GroupBy(ISqlField field);
-        void GroupBy<TEntity>(SqlAlias<TEntity> alias = null,
+        ISqlSelect GroupBy(ISqlField[] fields);
+        ISqlSelect GroupBy<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
-        void OrderBy(ISqlField field);
-        void OrderBy<TEntity>(SqlAlias<TEntity> alias = null,
+        ISqlSelect OrderBy(ISqlField[] fields);
+        ISqlSelect OrderBy<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
-        void Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null);
+        ISqlSelect Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null);
 
-        void Where(ISqlFilter filter);
-        void Having(ISqlFilter filter);
+        ISqlSelect Where(ISqlFilter filter);
+        ISqlSelect Having(ISqlFilter filter);
     }
 }

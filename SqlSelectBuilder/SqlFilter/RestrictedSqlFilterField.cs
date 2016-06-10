@@ -250,5 +250,28 @@ namespace SqlSelectBuilder
         }
 
         //----------------------------------------------------------------------------
+
+        public TResult NotIn(params TType[] values)
+        {
+            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
+            Guard.IsNotNull(values);
+            Guard.IsPositive(values.Length);
+            return NotIn((IEnumerable<TType>)values);
+        }
+
+        [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+        public TResult NotIn(IEnumerable<TType> values)
+        {
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+            if (!values.Any())
+                throw new ArgumentException("Collection is empty");
+            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
+            Contract.EndContractBlock();
+            var parameters = string.Join(",", values.Select(v => MetadataProvider.Instance.ParameterToString(v)));
+            return BuildFilter("{0} NOT IN (" + parameters + ")", _currentItem.SqlField);
+        }
+
+        //----------------------------------------------------------------------------
     }
 }

@@ -139,5 +139,12 @@ namespace Tests
             Assert.Equal("pe.Id IN (5,6)", SqlFilter<Person>.From(m => m.Id).In(5, 6).Filter);
             Assert.Equal("pe.Name IN ('Sergey','Alex')", SqlFilter<Person>.From(m => m.Name).In("Sergey", "Alex").Filter);
         }
+
+        [Fact]
+        public void NotIn()
+        {
+            Assert.Equal("pe.Id NOT IN (5,6)", SqlFilter<Person>.From(m => m.Id).NotIn(5, 6).Filter);
+            Assert.Equal("pe.Name NOT IN ('Sergey','Alex')", SqlFilter<Person>.From(m => m.Name).NotIn("Sergey", "Alex").Filter);
+        }
     }
 }

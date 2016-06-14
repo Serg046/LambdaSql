@@ -64,6 +64,24 @@ namespace SqlSelectBuilder
             return AddFilter<TType>(FilterItems.Add(SqlFilterItems.Or), field);
         }
 
+        public RestrictedSqlFilter<TEntity> And(RestrictedSqlFilter<TEntity> filter)
+        {
+            Guard.IsNotNull(filter);
+            var items = FilterItems
+                .Add(SqlFilterItems.And)
+                .AddRange(filter.FilterItems);
+            return new RestrictedSqlFilter<TEntity>(items);
+        }
+
+        public RestrictedSqlFilter<TEntity> Or(RestrictedSqlFilter<TEntity> filter)
+        {
+            Guard.IsNotNull(filter);
+            var items = FilterItems
+                .Add(SqlFilterItems.Or)
+                .AddRange(filter.FilterItems);
+            return new RestrictedSqlFilter<TEntity>(items);
+        }
+
         public RestrictedSqlFilter<TEntity> AndGroup(RestrictedSqlFilter<TEntity> filter)
         {
             Guard.IsNotNull(filter);

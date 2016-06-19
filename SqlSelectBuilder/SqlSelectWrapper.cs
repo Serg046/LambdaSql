@@ -33,6 +33,11 @@ namespace SqlSelectBuilder
                     .Append(SEPARATOR).Append("(").Append(SEPARATOR_WITH_OFFSET)
                     .Append(_innerSqlSelect.CommandText.Replace(SEPARATOR, SEPARATOR_WITH_OFFSET))
                     .Append(SEPARATOR).Append(") AS ").Append(_alias.Value);
+                if (GroupByFields.Count > 0)
+                {
+                    sb.Append(SEPARATOR).Append("GROUP BY")
+                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", GroupByFields));
+                }
                 return sb.ToString();
             }
         }
@@ -153,7 +158,11 @@ namespace SqlSelectBuilder
         public SqlSelect GroupBy(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
-            GroupByFields.AddRange(fields);
+            GroupByFields.AddRange(fields.Select(f =>
+            {
+                f.Alias = _alias;
+                return f;
+            }));
             return this;
         }
 
@@ -173,7 +182,11 @@ namespace SqlSelectBuilder
         public SqlSelect OrderBy(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
-            OrderByFields.AddRange(fields);
+            OrderByFields.AddRange(fields.Select(f =>
+            {
+                f.Alias = _alias;
+                return f;
+            }));
             return this;
         }
 

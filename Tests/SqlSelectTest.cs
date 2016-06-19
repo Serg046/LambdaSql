@@ -1,4 +1,5 @@
 ﻿using System;
+using GuardExtensions;
 using SqlSelectBuilder;
 using Tests.Entities;
 using Xunit;

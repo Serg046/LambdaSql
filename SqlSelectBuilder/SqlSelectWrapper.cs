@@ -129,7 +129,11 @@ namespace SqlSelectBuilder
         public SqlSelect AddFields(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
-            SelectFields.AddRange(fields);
+            SelectFields.AddRange(fields.Select(f =>
+            {
+                f.Alias = _alias;
+                return f;
+            }));
             return this;
         }
 

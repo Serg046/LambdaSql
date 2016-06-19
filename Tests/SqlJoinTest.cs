@@ -41,6 +41,7 @@ namespace Tests
                 SqlFilter<Person>.From(p => p.Id).EqualTo<Passport>(p => p.PersonId, alias), alias).ToString());
         }
 
+        [Fact]
         public void RightJoin()
         {
             var alias = new SqlAlias<Passport>("pas");
@@ -51,6 +52,7 @@ namespace Tests
                 SqlFilter<Person>.From(p => p.Id).EqualTo<Passport>(p => p.PersonId, alias), alias).ToString());
         }
 
+        [Fact]
         public void FullJoin()
         {
             var alias = new SqlAlias<Passport>("pas");

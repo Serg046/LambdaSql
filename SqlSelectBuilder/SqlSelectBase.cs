@@ -69,8 +69,8 @@ namespace SqlSelectBuilder
             if (expression == null || expression.NodeType != ExpressionType.Equal)
                 throw new JoinException("Invalid join expression");
 
-            var leftExpr = expression.Left as MemberExpression;
-            var rightExpr = expression.Right as MemberExpression;
+            var leftExpr = LibHelper.GetMemberExpression(expression.Left);
+            var rightExpr = LibHelper.GetMemberExpression(expression.Right);
 
             Guard.IsNotNull(leftExpr);
             Guard.IsNotNull(rightExpr);

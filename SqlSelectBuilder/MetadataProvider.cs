@@ -50,20 +50,7 @@ namespace SqlSelectBuilder
         public virtual string GetPropertyName(LambdaExpression propertyExpression)
         {
             Guard.IsNotNull(propertyExpression);
-            var memberExpression = propertyExpression.Body as MemberExpression;
-            if (memberExpression != null)
-            {
-                return GetPropertyName(memberExpression);
-            }
-            else
-            {
-                var unary = propertyExpression.Body as UnaryExpression;
-                if (unary != null && unary.NodeType == ExpressionType.Convert && unary.Operand is MemberExpression)
-                {
-                    return GetPropertyName((MemberExpression)unary.Operand);
-                }
-            }
-            throw new InvalidOperationException();
+            return GetPropertyName(LibHelper.GetMemberExpression(propertyExpression));
         }
 
         public virtual string GetPropertyName(MemberExpression memberExpression)

@@ -169,6 +169,22 @@ INNER JOIN
         }
 
         [Fact]
+        public void LambdaJoinWithNullableType()
+        {
+            var joinByLambdaQry = new SqlSelect<Person>()
+                .InnerJoin<Person, Passport>((person, passport) => person.Id == passport.NullablePersonId);
+
+            var expected =
+@"SELECT
+    *
+FROM
+    Person pe
+INNER JOIN
+    Passport pa ON pe.Id = pa.NullablePersonId";
+            Assert.Equal(expected, joinByLambdaQry.CommandText);
+        }
+
+        [Fact]
         public void TotalTest()
         {
             var countFld = SqlField<Person>.Count(p => p.LastName);

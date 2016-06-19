@@ -93,6 +93,7 @@
     <Compile Include="ImmutableList.cs" />
     <Compile Include="ISqlField.cs" />
     <Compile Include="ISqlSelect.cs" />
+    <Compile Include="LibHelper.cs" />
     <Compile Include="SqlFilter\RestrictedSqlFilter.cs" />
     <Compile Include="SqlFilter\RestrictedSqlFilterField.cs" />
     <Compile Include="SqlAlias.cs" />

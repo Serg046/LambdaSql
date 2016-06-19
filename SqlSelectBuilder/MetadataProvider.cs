@@ -75,9 +75,12 @@ namespace SqlSelectBuilder
         public virtual string ParameterToString(object value)
         {
             Guard.IsNotNull(value);
-            if (value is int)
+
+            var paramType = Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType();
+
+            if (paramType == typeof(int))
                 return ((int)value).ToString();
-            if (value is string)
+            if (paramType == typeof(string))
             {
                 var val = value.ToString();
                 if (val.Length > 0)
@@ -86,6 +89,8 @@ namespace SqlSelectBuilder
                 }
                 throw new NotSupportedException($"The value is empty");
             }
+            if (paramType == typeof(bool))
+                return (bool)value ? "1" : "0";
             throw new NotSupportedException($"Type {value.GetType().FullName} is not supported as parameter");
         }
 

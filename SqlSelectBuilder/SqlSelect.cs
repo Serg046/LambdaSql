@@ -316,7 +316,6 @@ namespace SqlSelectBuilder
         ISqlSelect ISqlSelect.Where(ISqlFilter filter) => Where(filter);
         public SqlSelect<T> Where(ISqlFilter filter)
         {
-            Guard.IsNotNull(filter);
             WhereFilter = filter;
             return this;
         }
@@ -324,7 +323,6 @@ namespace SqlSelectBuilder
         ISqlSelect ISqlSelect.Having(ISqlFilter filter) => Having(filter);
         public SqlSelect<T> Having(ISqlFilter filter)
         {
-            Guard.IsNotNull(filter);
             HavingFilter = filter;
             return this;
         }

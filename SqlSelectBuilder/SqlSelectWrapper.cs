@@ -36,7 +36,7 @@ namespace SqlSelectBuilder
                 if (GroupByFields.Count > 0)
                 {
                     sb.Append(SEPARATOR).Append("GROUP BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", GroupByFields));
+                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", GroupByFields.Select(f => f.ShortView)));
                 }
                 return sb.ToString();
             }

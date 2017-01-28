@@ -102,51 +102,5 @@ FROM
 ) AS p1";
             Assert.Equal(expected, correctQry.CommandText);
         }
-
-        [Fact]
-        public void IncorrectFieldAliasThrowsException()
-        {
-            var innerQry = new SqlSelect<Person>()
-                .AddFields(p => p.LastName);
-
-            var alias = new SqlAlias("p");
-            var incorrectQry = new SqlSelect(innerQry, alias)
-                .AddFields(SqlField<Person>.From(p => p.LastName));
-            Assert.Throws<IncorrectAliasException>(() => { var cmd = incorrectQry.CommandText; });
-            var correctQry = new SqlSelect(innerQry, alias)
-                .AddFields(SqlField<Person>.From(alias, p => p.LastName));
-            Assert.DoesNotThrow(() => { var cmd = correctQry.CommandText; });
-        }
-
-        [Fact]
-        public void IncorrectFilterAliasThrowsException()
-        {
-            var innerQry = new SqlSelect<Person>()
-                .AddFields(p => p.LastName);
-
-            var alias = new SqlAlias("p");
-            var whereCheckFail = new SqlSelect(innerQry, alias)
-                .Where(SqlFilter<Person>.From(p => p.LastName).EqualTo("Aseev"));
-            Assert.Throws<IncorrectAliasException>(() => { var cmd = whereCheckFail.CommandText; });
-            var whereCheckPass = new SqlSelect(innerQry, alias)
-                .Where(SqlFilter<Person>.From(p => p.LastName, alias).EqualTo("Aseev"));
-            Assert.DoesNotThrow(() => { var cmd = whereCheckPass.CommandText; });
-
-            var havingCheckFail = new SqlSelect(innerQry, alias)
-                .Having(SqlFilter<Person>.From(p => p.LastName).EqualTo("Aseev"));
-            Assert.Throws<IncorrectAliasException>(() => { var cmd = havingCheckFail.CommandText; });
-            var havingCheckPass = new SqlSelect(innerQry, alias)
-                .Having(SqlFilter<Person>.From(p => p.LastName, alias).EqualTo("Aseev"));
-            Assert.DoesNotThrow(() => { var cmd = havingCheckPass.CommandText; });
-
-            var multiCheckFail = new SqlSelect(innerQry, alias)
-                .Where(SqlFilter<Person>.From(p => p.LastName).EqualTo("Aseev"))
-                .Having(SqlFilter<Person>.From(p => p.LastName).EqualTo("Aseev"));
-            Assert.Throws<IncorrectAliasException>(() => { var cmd = multiCheckFail.CommandText; });
-            var multiCheckPass = new SqlSelect(innerQry, alias)
-                .Where(SqlFilter<Person>.From(p => p.LastName, alias).EqualTo("Aseev"))
-                .Having(SqlFilter<Person>.From(p => p.LastName, alias).EqualTo("Aseev"));
-            Assert.DoesNotThrow(() => { var cmd = multiCheckPass.CommandText; });
-        }
     }
 }

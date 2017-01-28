@@ -11,7 +11,7 @@ namespace SqlSelectBuilder
         string ToString(bool withoutAliases = false);
     }
 
-    public class SqlFilterItem : ISqlFilterItem
+    internal class SqlFilterItem : ISqlFilterItem
     {
         private string _expression = null;
         private object[] _args = null;

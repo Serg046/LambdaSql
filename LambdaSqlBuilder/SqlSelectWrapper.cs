@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -26,8 +25,6 @@ namespace LambdaSqlBuilder
             {
                 CheckAsAliases();
                 CheckSelectedFields();
-                CheckFieldAliases();
-                CheckFilterAliases();
                 var sb = new StringBuilder("SELECT").Append(SEPARATOR_WITH_OFFSET);
                 SelectedFields(sb);
                 sb.Append("FROM")
@@ -51,44 +48,9 @@ namespace LambdaSqlBuilder
                                                            && f.EntityType == selectField.EntityType))
                 {
                     throw new InvalidOperationException(
-                        $"'{selectField}' is not registered in the inner select query.");
+                        $"'{selectField}' is not set in the inner select query.");
                 }
             }
-        }
-
-        private void CheckFieldAliases()
-        {
-            // ReSharper disable PossibleMultipleEnumeration
-            var allFields = SelectFields
-                .Union(GroupByFields)
-                .Union(OrderByFields)
-                .Where(f => f.Alias.Value != _alias.Value);
-            if (allFields.Any())
-                throw new IncorrectAliasException($"The following user aliases are incorrect: {string.Join(", ", allFields.Select(f => f.Alias))}.");
-            // ReSharper restore PossibleMultipleEnumeration
-        }
-
-        private void CheckFilterAliases()
-        {
-            // ReSharper disable PossibleMultipleEnumeration
-            IEnumerable<SqlFilterItem> items = null;
-            if (Info.Where != null)
-                items = ((ISqlFilterItems)Info.Where).FilterItems.OfType<SqlFilterItem>();
-            if (Info.Having != null)
-            {
-                if (items == null)
-                    items = ((ISqlFilterItems)Info.Having).FilterItems.OfType<SqlFilterItem>();
-                else
-                    items = items.Concat(((ISqlFilterItems)Info.Having).FilterItems.OfType<SqlFilterItem>());
-            }
-            if (items != null)
-            {
-                items = items.Where(item => item.SqlField.Alias.Value != _alias.Value);
-                if (items.Any())
-                    throw new IncorrectAliasException(
-                        $"The following user aliases are incorrect: {string.Join(", ", items.Select(i => i.SqlField.Alias))}.");
-            }
-            // ReSharper restore PossibleMultipleEnumeration
         }
 
         public override string ToString()

@@ -84,18 +84,29 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET40-client\ReadOnlyCollectionsInterfaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable.Net40, Version=1.0.27.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.Net40.1.0.30.17\lib\net40\System.Collections.Immutable.Net40.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IMetadataProvider.cs" />
-    <Compile Include="ImmutableList.cs" />
     <Compile Include="ISqlField.cs" />
     <Compile Include="ISqlSelect.cs" />
     <Compile Include="LibHelper.cs" />
+    <Compile Include="SqlFilter\ISqlFilter.cs" />
+    <Compile Include="SqlFilter\SqlFilterConfiguration.cs" />
+    <Compile Include="SqlFilter\SqlFilterItem\ConstSqlFilterItem.cs" />
+    <Compile Include="SqlFilter\SqlFilterItem\ISqlFilterItem.cs" />
     <Compile Include="SqlFilter\RestrictedSqlFilter.cs" />
-    <Compile Include="SqlFilter\RestrictedSqlFilterField.cs" />
+    <Compile Include="SqlFilter\SqlFilterField\RestrictedSqlFilterField.cs" />
     <Compile Include="SqlAlias.cs" />
     <Compile Include="MetadataProvider.cs" />
     <Compile Include="SqlAliasContainer.cs" />
@@ -103,8 +114,10 @@
     <Compile Include="SqlField.cs" />
     <Compile Include="SqlFilter\SqlFilter.cs" />
     <Compile Include="SqlFilter\SqlFilterBase.cs" />
-    <Compile Include="SqlFilter\SqlFilterField.cs" />
-    <Compile Include="SqlFilter\SqlFilterItem.cs" />
+    <Compile Include="SqlFilter\SqlFilterField\SqlFilterField.cs" />
+    <Compile Include="SqlFilter\SqlFilterItem\ISqlFilterItemParameter.cs" />
+    <Compile Include="SqlFilter\SqlFilterItem\SqlFilterItem.cs" />
+    <Compile Include="SqlFilter\SqlFilterItem\SqlFilterItems.cs" />
     <Compile Include="SqlJoin.cs" />
     <Compile Include="SqlSelect.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

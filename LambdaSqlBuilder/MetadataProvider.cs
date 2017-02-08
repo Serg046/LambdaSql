@@ -74,7 +74,7 @@ namespace LambdaSqlBuilder
                 {
                     return $"'{val}'";
                 }
-                throw new NotSupportedException($"The value is empty");
+                throw new NotSupportedException("The value is empty");
             }
             if (paramType == typeof(bool))
                 return (bool)value ? "1" : "0";

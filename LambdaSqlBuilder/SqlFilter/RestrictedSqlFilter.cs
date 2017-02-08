@@ -1,74 +1,64 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
-using GuardExtensions;
-using LambdaSqlBuilder;
+using LambdaSqlBuilder.SqlFilter.SqlFilterField;
+using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
 
-// ReSharper disable CheckNamespace
-
-namespace SqlSelectBuilder
+namespace LambdaSqlBuilder.SqlFilter
 {
-    public class RestrictedSqlFilter<TEntity> : SqlFilterBase<TEntity>
+    public class RestrictedSqlFilter<TEntity> : SqlFilterBase
     {
-        internal RestrictedSqlFilter(ImmutableList<ISqlFilterItem> sqlFilterItems) : base(sqlFilterItems)
+        internal RestrictedSqlFilter(ImmutableList<SqlFilterItemFunc> sqlFilterItems) : base(sqlFilterItems)
         {
         }
 
-        private RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> AddFilter<TType>(
-            ImmutableList<ISqlFilterItem> items, LambdaExpression field, SqlAlias<TEntity> alias)
+        private RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> CreateField<TType>(
+            ImmutableList<SqlFilterItemFunc> items, LambdaExpression field, SqlAlias<TEntity> alias)
         {
-            Guard.IsNotNull(field);
-            return new RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>>(items, BuildSqlFilterItem(field, alias));
+            return new RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>>(items, BuildSqlField(field, alias));
         }
 
-        private RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> AddFilter<TType>(
-            ImmutableList<ISqlFilterItem> items, SqlField<TEntity> field)
+        private RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> CreateField<TType>(
+            ImmutableList<SqlFilterItemFunc> items, SqlField<TEntity> field)
         {
-            Guard.IsNotNull(field);
-            return new RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>>(items, BuildSqlFilterItem(field));
+            return new RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>>(items, field);
         }
 
         public static RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> From<TType>(
             Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
-            Guard.IsNotNull(field);
             return new RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>>(
-                ImmutableList<ISqlFilterItem>.Empty, BuildSqlFilterItem(field, alias));
+                ImmutableList<SqlFilterItemFunc>.Empty, BuildSqlField(field, alias));
         }
 
         public static RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> From<TType>(SqlField<TEntity> field)
         {
-            Guard.IsNotNull(field);
             return new RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>>(
-                ImmutableList<ISqlFilterItem>.Empty, BuildSqlFilterItem(field));
+                ImmutableList<SqlFilterItemFunc>.Empty, field);
         }
 
         public RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> And<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.And), field, alias);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.And), field, alias);
         }
 
         public RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> Or<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.Or), field, alias);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.Or), field, alias);
         }
 
         public RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> And<TType>(SqlField<TEntity> field)
         {
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.And), field);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.And), field);
         }
 
         public RestrictedSqlFilterField<TEntity, TType, RestrictedSqlFilter<TEntity>> Or<TType>(SqlField<TEntity> field)
         {
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.Or), field);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.Or), field);
         }
 
         public RestrictedSqlFilter<TEntity> And(RestrictedSqlFilter<TEntity> filter)
         {
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .AddRange(filter.FilterItems);
@@ -77,7 +67,6 @@ namespace SqlSelectBuilder
 
         public RestrictedSqlFilter<TEntity> Or(RestrictedSqlFilter<TEntity> filter)
         {
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .AddRange(filter.FilterItems);
@@ -86,7 +75,6 @@ namespace SqlSelectBuilder
 
         public RestrictedSqlFilter<TEntity> AndGroup(RestrictedSqlFilter<TEntity> filter)
         {
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .Add(SqlFilterItems.Build("("))
@@ -97,7 +85,6 @@ namespace SqlSelectBuilder
 
         public RestrictedSqlFilter<TEntity> OrGroup(RestrictedSqlFilter<TEntity> filter)
         {
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .Add(SqlFilterItems.Build("("))

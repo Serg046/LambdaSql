@@ -1,6 +1,5 @@
 ﻿using System;
 using LambdaSqlBuilder.UnitTests.Entities;
-using SqlSelectBuilder;
 using Xunit;
 
 namespace LambdaSqlBuilder.UnitTests

@@ -1,99 +1,77 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
-using GuardExtensions;
-using LambdaSqlBuilder;
+using LambdaSqlBuilder.SqlFilter.SqlFilterField;
+using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
 
-// ReSharper disable CheckNamespace
-
-namespace SqlSelectBuilder
+namespace LambdaSqlBuilder.SqlFilter
 {
-    public class SqlFilter<TEntity> : SqlFilterBase<TEntity>
+    public class SqlFilter<TEntity> : SqlFilterBase
     {
-        internal SqlFilter(ImmutableList<ISqlFilterItem> sqlFilterItems) : base(sqlFilterItems)
+        internal SqlFilter(ImmutableList<SqlFilterItemFunc> sqlFilterItems) : base(sqlFilterItems)
         {
         }
 
-        private SqlFilterField<TEntity, TType> AddFilter<TType>(
-            ImmutableList<ISqlFilterItem> items, LambdaExpression field, ISqlAlias alias)
+        private SqlFilterField<TEntity, TType> CreateField<TType>(
+            ImmutableList<SqlFilterItemFunc> items, LambdaExpression field, SqlAlias<TEntity> alias)
         {
-            Guard.IsNotNull(field);
-            return new SqlFilterField<TEntity, TType>(items, BuildSqlFilterItem(field, alias));
+            return new SqlFilterField<TEntity, TType>(items, BuildSqlField(field, alias));
         }
 
-        private SqlFilterField<TEntity, TType> AddFilter<TType>(
-            ImmutableList<ISqlFilterItem> items, ISqlField field)
+        private SqlFilterField<TEntity, TType> CreateField<TType>(
+            ImmutableList<SqlFilterItemFunc> items, ISqlField field)
         {
-            Guard.IsNotNull(field);
-            return new SqlFilterField<TEntity, TType>(items, BuildSqlFilterItem(field));
+            return new SqlFilterField<TEntity, TType>(items, field);
         }
 
-        public static SqlFilterField<TEntity, TType> From<TType>(Expression<Func<TEntity, TType>> field, ISqlAlias alias = null)
+        public static SqlFilterField<TEntity, TType> From<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
-            Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
-            Guard.IsNotNull(field);
-            return new SqlFilterField<TEntity, TType>(ImmutableList<ISqlFilterItem>.Empty, BuildSqlFilterItem(field, alias));
+            return new SqlFilterField<TEntity, TType>(ImmutableList<SqlFilterItemFunc>.Empty, BuildSqlField(field, alias));
         }
 
         public static SqlFilterField<TEntity, TType> From<TType>(ISqlField field)
         {
-            Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
-            Guard.IsNotNull(field);
-            return new SqlFilterField<TEntity, TType>(ImmutableList<ISqlFilterItem>.Empty, BuildSqlFilterItem(field));
+            return new SqlFilterField<TEntity, TType>(ImmutableList<SqlFilterItemFunc>.Empty, field);
         }
 
-        public SqlFilterField<TEntity, TType> And<TType>(Expression<Func<TEntity, TType>> field, ISqlAlias alias = null)
+        public SqlFilterField<TEntity, TType> And<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
-            Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.And), field, alias);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.And), field, alias);
         }
 
-        public SqlFilterField<TEntity, TType> Or<TType>(Expression<Func<TEntity, TType>> field, ISqlAlias alias = null)
+        public SqlFilterField<TEntity, TType> Or<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
-            Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.Or), field, alias);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.Or), field, alias);
         }
 
         public SqlFilterField<TEntity, TType> And<TType>(ISqlField field)
         {
-            Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.And), field);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.And), field);
         }
 
         public SqlFilterField<TEntity, TType> Or<TType>(ISqlField field)
         {
-            Contract.Ensures(Contract.Result<SqlFilterField<TEntity, TType>>() != null);
-            Guard.IsNotNull(field);
-            return AddFilter<TType>(FilterItems.Add(SqlFilterItems.Or), field);
+            return CreateField<TType>(FilterItems.Add(SqlFilterItems.Or), field);
         }
 
-        public SqlFilter<TEntity> And(ISqlFilterItems filter)
+        public SqlFilter<TEntity> And(SqlFilterBase filter)
         {
-            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .AddRange(filter.FilterItems);
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilter<TEntity> Or(ISqlFilterItems filter)
+        public SqlFilter<TEntity> Or(SqlFilterBase filter)
         {
-            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .AddRange(filter.FilterItems);
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilter<TEntity> AndGroup(ISqlFilterItems filter)
+        public SqlFilter<TEntity> AndGroup(SqlFilterBase filter)
         {
-            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .Add(SqlFilterItems.Build("("))
@@ -102,10 +80,8 @@ namespace SqlSelectBuilder
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilter<TEntity> OrGroup(ISqlFilterItems filter)
+        public SqlFilter<TEntity> OrGroup(SqlFilterBase filter)
         {
-            Contract.Ensures(Contract.Result<SqlFilter<TEntity>>() != null);
-            Guard.IsNotNull(filter);
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .Add(SqlFilterItems.Build("("))

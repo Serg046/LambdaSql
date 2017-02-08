@@ -1,6 +1,6 @@
 ﻿using System;
 using GuardExtensions;
-using SqlSelectBuilder;
+using LambdaSqlBuilder.SqlFilter;
 
 namespace LambdaSqlBuilder
 {

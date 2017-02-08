@@ -1,5 +1,5 @@
-﻿using LambdaSqlBuilder.UnitTests.Entities;
-using SqlSelectBuilder;
+﻿using LambdaSqlBuilder.SqlFilter;
+using LambdaSqlBuilder.UnitTests.Entities;
 using Xunit;
 
 namespace LambdaSqlBuilder.UnitTests

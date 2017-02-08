@@ -1,65 +1,53 @@
-﻿using System.Linq;
+﻿using System.Collections.Immutable;
 using System.Linq.Expressions;
 using GuardExtensions;
-using LambdaSqlBuilder;
+using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
 
-// ReSharper disable CheckNamespace
-
-namespace SqlSelectBuilder
+namespace LambdaSqlBuilder.SqlFilter
 {
-    public interface ISqlFilter
-    {
-        string Filter { get; }
-    }
+    internal delegate ISqlFilterItem SqlFilterItemFunc(SqlFilterConfiguration configuration);
 
-    public interface ISqlFilterItems
+    public class SqlFilterBase : ISqlFilter
     {
-        ImmutableList<ISqlFilterItem> FilterItems { get; }
-    }
-
-    public class SqlFilterBase<TEntity> : ISqlFilter, ISqlFilterItems
-    {
-        protected const string AND = " AND ";
-        protected const string OR = " OR ";
         protected bool MustBeWithoutAliases = false;
         
-        internal SqlFilterBase(ImmutableList<ISqlFilterItem> sqlFilterItems)
+        internal SqlFilterBase(ImmutableList<SqlFilterItemFunc> sqlFilterItems)
         {
             Guard.IsNotNull(sqlFilterItems);
             FilterItems = sqlFilterItems;
         }
 
-        internal ImmutableList<ISqlFilterItem> FilterItems { get; }
-        ImmutableList<ISqlFilterItem> ISqlFilterItems.FilterItems => FilterItems;
+        internal ImmutableList<SqlFilterItemFunc> FilterItems { get; }
 
-        public string Filter => FilterItems.Aggregate(string.Empty,
-            (s, item) => s + item.ToString(MustBeWithoutAliases));
+        public string Filter
+        {
+            get
+            {
+                var configuration = new SqlFilterConfiguration
+                {
+                    WithoutAliases = MustBeWithoutAliases,
+                    WithoutParameters = false
+                };
+                var result = string.Empty;
+                foreach (var item in FilterItems)
+                    result = result + item(configuration).ToString();
+                return result;
+            }
+        }
 
         public override string ToString() => Filter;
 
-        protected static ISqlAlias CheckAlias(ISqlAlias alias)
-        {
-            return alias ?? MetadataProvider.Instance.AliasFor<TEntity>();
-        }
+        protected static SqlAlias<TEntity> CheckAlias<TEntity>(SqlAlias<TEntity> alias)
+            => alias ?? MetadataProvider.Instance.AliasFor<TEntity>();
 
         protected static string GetFieldName(LambdaExpression field, ISqlAlias alias)
-        {
-            var fieldName = MetadataProvider.Instance.GetPropertyName(field);
-            return alias.Value + "." + fieldName;
-        }
+            => alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field);
 
-        internal static SqlFilterItem BuildSqlFilterItem(LambdaExpression field, ISqlAlias alias)
+        internal static ISqlField BuildSqlField<TEntity>(LambdaExpression field, SqlAlias<TEntity> alias)
         {
-            Guard.IsNotNull(field);
             alias = CheckAlias(alias);
             var sqlField = new SqlField<TEntity>() { Alias = alias, Name = MetadataProvider.Instance.GetPropertyName(field)};
-            return new SqlFilterItem(sqlField);
-        }
-
-        internal static SqlFilterItem BuildSqlFilterItem(ISqlField sqlField)
-        {
-            Guard.IsNotNull(sqlField);
-            return new SqlFilterItem(sqlField);
+            return sqlField;
         }
     }
 }

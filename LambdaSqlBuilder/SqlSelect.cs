@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Text;
 using GuardExtensions;
-using SqlSelectBuilder;
+using LambdaSqlBuilder.SqlFilter;
 
 namespace LambdaSqlBuilder
 {

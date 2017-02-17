@@ -11,5 +11,6 @@ namespace LambdaSqlBuilder
         string ShortView { get; }
         string View { get; }
         FieldAggregation? Aggregation { get; set; }
+        ISqlField Clone();
     }
 }

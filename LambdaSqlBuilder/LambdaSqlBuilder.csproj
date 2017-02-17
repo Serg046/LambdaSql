@@ -93,6 +93,7 @@
       <HintPath>..\packages\System.Collections.Immutable.Net40.1.0.30.17\lib\net40\System.Collections.Immutable.Net40.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
@@ -115,7 +116,7 @@
     <Compile Include="SqlFilter\SqlFilter.cs" />
     <Compile Include="SqlFilter\SqlFilterBase.cs" />
     <Compile Include="SqlFilter\SqlFilterField\SqlFilterField.cs" />
-    <Compile Include="SqlFilter\SqlFilterItem\ISqlFilterItemParameter.cs" />
+    <Compile Include="SqlFilter\SqlFilterItem\SqlFilterParameter.cs" />
     <Compile Include="SqlFilter\SqlFilterItem\SqlFilterItem.cs" />
     <Compile Include="SqlFilter\SqlFilterItem\SqlFilterItems.cs" />
     <Compile Include="SqlJoin.cs" />

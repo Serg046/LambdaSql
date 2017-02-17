@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using GuardExtensions;
+using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
 
 namespace LambdaSqlBuilder.SqlFilter.SqlFilterField
 {
@@ -22,8 +24,15 @@ namespace LambdaSqlBuilder.SqlFilter.SqlFilterField
         internal virtual TResult BuildFilter(ImmutableList<SqlFilterItemFunc> sqlFilterItems)
             => new RestrictedSqlFilter<TEntity>(sqlFilterItems) as TResult;
 
-        protected TResult BuildFilter(string expression, params object[] args)
-            => BuildFilter(_sqlFilterItems.Add(config => new SqlFilterItem.SqlFilterItem(config, expression, args)));
+        internal TResult BuildFilter(string expression, ISqlField sqlField)
+            => BuildFilter(_sqlFilterItems.Add(config
+                => new SqlFilterItem.SqlFilterItem(expression, SqlFilterParameter.Create(config, sqlField))));
+
+        internal TResult BuildFilter(string expression, params SqlFilterParameter[] args)
+            => BuildFilter(_sqlFilterItems.Add(config => new SqlFilterItem.SqlFilterItem(expression, args)));
+
+        internal TResult BuildFilter(string expression, Func<SqlFilterConfiguration, SqlFilterParameter[]> args)
+            => BuildFilter(_sqlFilterItems.Add(config => new SqlFilterItem.SqlFilterItem(expression, args.Invoke(config))));
 
         protected SqlAlias<T> CheckAlias<T>(SqlAlias<T> alias)
             => alias ?? MetadataProvider.Instance.AliasFor<T>();
@@ -50,79 +59,108 @@ namespace LambdaSqlBuilder.SqlFilter.SqlFilterField
 
         //----------------------------------------------------------------------------
 
-        protected TResult LogicFilter(string logicOperator, string value)
-            => BuildFilter("{0} " + logicOperator + " " + value, _sqlField);
-
-        protected TResult LogicFilter(string logicOperator, ISqlField sqlField)
+        protected TResult ComparisonFilter(string logicOperator, object value)
         {
-            Guard.IsNotNull(sqlField);
-            return BuildFilter("{0} " + logicOperator + " {1}", _sqlField, sqlField);
+            Func<SqlFilterConfiguration, SqlFilterParameter[]> args = config => new[]
+            {
+                SqlFilterParameter.Create(config, _sqlField),
+                SqlFilterParameter.Create(config, value)
+            };
+            return BuildFilter("{0} " + logicOperator + " {1}", args);
         }
 
-        protected TResult LogicFilter<T>(string logicOperator, LambdaExpression field, SqlAlias<T> alias)
+        protected TResult ComparisonFilter(string logicOperator, ISqlField sqlField)
+        {
+            Guard.IsNotNull(sqlField);
+            Func<SqlFilterConfiguration, SqlFilterParameter[]> args = config => new[]
+            {
+                SqlFilterParameter.Create(config, _sqlField),
+                SqlFilterParameter.Create(config, sqlField)
+            };
+            return BuildFilter("{0} " + logicOperator + " {1}", args);
+        }
+
+        protected TResult ComparisonFilter<T>(string logicOperator, LambdaExpression field, SqlAlias<T> alias)
         {
             Guard.IsNotNull(field);
 
             alias = CheckAlias(alias);
             var sqlField = new SqlField<T>() {Alias = alias, Name = MetadataProvider.Instance.GetPropertyName(field)};
-            return LogicFilter(logicOperator, sqlField);
+            return ComparisonFilter(logicOperator, sqlField);
         }
 
         //----------------------------------------------------------------------------
 
-        public TResult EqualTo(TType value) => LogicFilter("=", MetadataProvider.Instance.ParameterToString(value));
+        public TResult EqualTo(TType value) => ComparisonFilter("=", value);
 
-        public TResult EqualTo(SqlField<TEntity> field) => LogicFilter("=", field);
+        public TResult EqualTo(SqlField<TEntity> field) => ComparisonFilter("=", field);
 
-        public TResult EqualTo(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => LogicFilter("=", field, alias);
-
-        //----------------------------------------------------------------------------
-
-        public TResult NotEqualTo(TType value) => LogicFilter("<>", MetadataProvider.Instance.ParameterToString(value));
-
-        public TResult NotEqualTo(SqlField<TEntity> field) => LogicFilter("<>", field);
-
-        public TResult NotEqualTo(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => LogicFilter("<>", field, alias);
+        public TResult EqualTo(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => ComparisonFilter("=", field, alias);
 
         //----------------------------------------------------------------------------
 
-        public TResult GreaterThan(TType value) => LogicFilter(">", MetadataProvider.Instance.ParameterToString(value));
+        public TResult NotEqualTo(TType value) => ComparisonFilter("<>", value);
 
-        public TResult GreaterThan(SqlField<TEntity> field) => LogicFilter(">", field);
+        public TResult NotEqualTo(SqlField<TEntity> field) => ComparisonFilter("<>", field);
 
-        public TResult GreaterThan(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => LogicFilter(">", field, alias);
-
-        //----------------------------------------------------------------------------
-
-        public TResult GreaterThanOrEqual(TType value) => LogicFilter(">=", MetadataProvider.Instance.ParameterToString(value));
-
-        public TResult GreaterThanOrEqual(SqlField<TEntity> field) => LogicFilter(">=", field);
-
-        public TResult GreaterThanOrEqual(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => LogicFilter(">=", field, alias);
+        public TResult NotEqualTo(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => ComparisonFilter("<>", field, alias);
 
         //----------------------------------------------------------------------------
 
-        public TResult LessThan(TType value) => LogicFilter("<", MetadataProvider.Instance.ParameterToString(value));
+        public TResult GreaterThan(TType value) => ComparisonFilter(">", value);
 
-        public TResult LessThan(SqlField<TEntity> field) => LogicFilter("<", field);
+        public TResult GreaterThan(SqlField<TEntity> field) => ComparisonFilter(">", field);
 
-        public TResult LessThan(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => LogicFilter("<", field, alias);
+        public TResult GreaterThan(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => ComparisonFilter(">", field, alias);
+
+        //----------------------------------------------------------------------------
+
+        public TResult GreaterThanOrEqual(TType value) => ComparisonFilter(">=", value);
+
+        public TResult GreaterThanOrEqual(SqlField<TEntity> field) => ComparisonFilter(">=", field);
+
+        public TResult GreaterThanOrEqual(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => ComparisonFilter(">=", field, alias);
 
         //----------------------------------------------------------------------------
 
-        public TResult LessThanOrEqual(TType value) => LogicFilter("<=", MetadataProvider.Instance.ParameterToString(value));
+        public TResult LessThan(TType value) => ComparisonFilter("<", value);
 
-        public TResult LessThanOrEqual(SqlField<TEntity> field) => LogicFilter("<=", field);
+        public TResult LessThan(SqlField<TEntity> field) => ComparisonFilter("<", field);
 
-        public TResult LessThanOrEqual(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => LogicFilter("<=", field, alias);
+        public TResult LessThan(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => ComparisonFilter("<", field, alias);
 
         //----------------------------------------------------------------------------
+
+        public TResult LessThanOrEqual(TType value) => ComparisonFilter("<=", value);
+
+        public TResult LessThanOrEqual(SqlField<TEntity> field) => ComparisonFilter("<=", field);
+
+        public TResult LessThanOrEqual(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null) => ComparisonFilter("<=", field, alias);
+
+        //----------------------------------------------------------------------------
+
+        public TResult ContainsFilter(string @operator, IEnumerable<TType> values)
+        {
+            Func<SqlFilterConfiguration, SqlFilterParameter[]> args = config =>
+            {
+                var list = new List<SqlFilterParameter>();
+                list.Add(SqlFilterParameter.Create(config, _sqlField));
+                list.AddRange(values.Select(val => SqlFilterParameter.Create(config, val)));
+                return list.ToArray();
+            };
+
+            var parameters = string.Join(",", values.Select((val, i) => $"{{{i + 1}}}"));
+            return BuildFilter("{0} "+ @operator + " (" + parameters + ")", args);
+        }
+
+        //----
+
 
         public TResult In(params TType[] values)
         {
             Guard.IsNotNull(values);
             Guard.IsPositive(values.Length);
-            return In((IEnumerable<TType>)values);
+            return ContainsFilter("IN", values);
         }
 
         public TResult In(IEnumerable<TType> values)
@@ -131,8 +169,7 @@ namespace LambdaSqlBuilder.SqlFilter.SqlFilterField
             if (!values.Any())
                 throw new ArgumentException("Collection is empty");
 
-            var parameters = string.Join(",", values.Select(v => MetadataProvider.Instance.ParameterToString(v)));
-            return BuildFilter("{0} IN (" + parameters + ")", _sqlField);
+            return ContainsFilter("IN", values);
         }
 
         //----------------------------------------------------------------------------
@@ -141,7 +178,7 @@ namespace LambdaSqlBuilder.SqlFilter.SqlFilterField
         {
             Guard.IsNotNull(values);
             Guard.IsPositive(values.Length);
-            return NotIn((IEnumerable<TType>)values);
+            return ContainsFilter("NOT IN", values);
         }
 
         public TResult NotIn(IEnumerable<TType> values)
@@ -150,8 +187,7 @@ namespace LambdaSqlBuilder.SqlFilter.SqlFilterField
             if (!values.Any())
                 throw new ArgumentException("Collection is empty");
 
-            var parameters = string.Join(",", values.Select(v => MetadataProvider.Instance.ParameterToString(v)));
-            return BuildFilter("{0} NOT IN (" + parameters + ")", _sqlField);
+            return ContainsFilter("NOT IN", values);
         }
     }
 }

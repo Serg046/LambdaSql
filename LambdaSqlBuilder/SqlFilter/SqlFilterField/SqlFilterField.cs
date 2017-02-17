@@ -16,62 +16,62 @@ namespace LambdaSqlBuilder.SqlFilter.SqlFilterField
 
         //----------------------------------------------------------------------------
 
-        public SqlFilter<TEntity> EqualTo(ISqlField field) => LogicFilter("=", field);
+        public SqlFilter<TEntity> EqualTo(ISqlField field) => ComparisonFilter("=", field);
 
         public SqlFilter<TEntity> EqualTo<TRight>(Expression<Func<TRight, TType>> field, SqlAlias<TRight> alias = null)
         {
             alias = CheckAlias(alias);
-            return LogicFilter("=", field, alias);
+            return ComparisonFilter("=", field, alias);
         }
 
         //----------------------------------------------------------------------------
 
-        public SqlFilter<TEntity> NotEqualTo(ISqlField field) => LogicFilter("<>", field);
+        public SqlFilter<TEntity> NotEqualTo(ISqlField field) => ComparisonFilter("<>", field);
 
         public SqlFilter<TEntity> NotEqualTo<TRight>(Expression<Func<TRight, TType>> field, SqlAlias<TRight> alias = null)
         {
             alias = CheckAlias(alias);
-            return LogicFilter("<>", field, alias);
+            return ComparisonFilter("<>", field, alias);
         }
 
         //----------------------------------------------------------------------------
 
-        public SqlFilter<TEntity> GreaterThan(ISqlField field) => LogicFilter(">", field);
+        public SqlFilter<TEntity> GreaterThan(ISqlField field) => ComparisonFilter(">", field);
 
         public SqlFilter<TEntity> GreaterThan<TRight>(Expression<Func<TRight, TType>> field, SqlAlias<TRight> alias = null)
         {
             alias = CheckAlias(alias);
-            return LogicFilter(">", field, alias);
+            return ComparisonFilter(">", field, alias);
         }
 
         //----------------------------------------------------------------------------
 
-        public SqlFilter<TEntity> GreaterThanOrEqual(ISqlField field) => LogicFilter(">=", field);
+        public SqlFilter<TEntity> GreaterThanOrEqual(ISqlField field) => ComparisonFilter(">=", field);
 
         public SqlFilter<TEntity> GreaterThanOrEqual<TRight>(Expression<Func<TRight, TType>> field, SqlAlias<TRight> alias = null)
         {
             alias = CheckAlias(alias);
-            return LogicFilter(">=", field, alias);
+            return ComparisonFilter(">=", field, alias);
         }
 
         //----------------------------------------------------------------------------
 
-        public SqlFilter<TEntity> LessThan(ISqlField field) => LogicFilter("<", field);
+        public SqlFilter<TEntity> LessThan(ISqlField field) => ComparisonFilter("<", field);
 
         public SqlFilter<TEntity> LessThan<TRight>(Expression<Func<TRight, TType>> field, SqlAlias<TRight> alias = null)
         {
             alias = CheckAlias(alias);
-            return LogicFilter("<", field, alias);
+            return ComparisonFilter("<", field, alias);
         }
 
         //----------------------------------------------------------------------------
 
-        public SqlFilter<TEntity> LessThanOrEqual(ISqlField field) => LogicFilter("<=", field);
+        public SqlFilter<TEntity> LessThanOrEqual(ISqlField field) => ComparisonFilter("<=", field);
 
         public SqlFilter<TEntity> LessThanOrEqual<TRight>(Expression<Func<TRight, TType>> field, SqlAlias<TRight> alias = null)
         {
             alias = CheckAlias(alias);
-            return LogicFilter("<=", field, alias);
+            return ComparisonFilter("<=", field, alias);
         }
     }
 }

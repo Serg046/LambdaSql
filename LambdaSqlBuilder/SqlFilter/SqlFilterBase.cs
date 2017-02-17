@@ -26,11 +26,11 @@ namespace LambdaSqlBuilder.SqlFilter
                 var configuration = new SqlFilterConfiguration
                 {
                     WithoutAliases = MustBeWithoutAliases,
-                    WithoutParameters = false
+                    WithoutParameters = true
                 };
                 var result = string.Empty;
                 foreach (var item in FilterItems)
-                    result = result + item(configuration).ToString();
+                    result = result + item(configuration).Expression;
                 return result;
             }
         }

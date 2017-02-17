@@ -52,10 +52,9 @@ namespace LambdaSqlBuilder
             return sb;
         }
 
-        public override string ToString()
-        {
-            return View;
-        }
+        public override string ToString() => View;
+
+        public ISqlField Clone() => (ISqlField)MemberwiseClone();
 
         public static SqlField<TEntity> From<TType>(Expression<Func<TEntity, TType>> field, string asAlias = null)
         {

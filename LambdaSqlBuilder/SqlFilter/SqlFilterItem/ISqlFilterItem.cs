@@ -1,7 +1,11 @@
-﻿namespace LambdaSqlBuilder.SqlFilter.SqlFilterItem
+﻿using System.Collections.Generic;
+using System.Data.SqlClient;
+
+namespace LambdaSqlBuilder.SqlFilter.SqlFilterItem
 {
     internal interface ISqlFilterItem
     {
-        string ToString();
+        string Expression { get; }
+        IEnumerable<SqlParameter> Parameters { get; }
     }
 }

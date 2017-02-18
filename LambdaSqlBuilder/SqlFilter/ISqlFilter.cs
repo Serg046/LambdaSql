@@ -1,7 +1,11 @@
-﻿namespace LambdaSqlBuilder.SqlFilter
+﻿using System.Data.SqlClient;
+
+namespace LambdaSqlBuilder.SqlFilter
 {
     public interface ISqlFilter
     {
-        string Filter { get; }
+        string RawSql { get; }
+        string ParametricSql { get; }
+        SqlParameter[] Parameters { get; }
     }
 }

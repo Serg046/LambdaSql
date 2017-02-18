@@ -65,7 +65,7 @@
     <Compile Include="Entities\Person.cs" />
     <Compile Include="MetadataProviderTest.cs" />
     <Compile Include="SqlFieldTest.cs" />
-    <Compile Include="SqlFilterTest.cs" />
+    <Compile Include="SqlFilter\SqlFilterTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlFilterFieldTest.cs" />
     <Compile Include="SqlJoinTest.cs" />
@@ -81,9 +81,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SqlFilter\" />
-  </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

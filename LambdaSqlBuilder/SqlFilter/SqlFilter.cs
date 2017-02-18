@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
-using LambdaSqlBuilder.SqlFilter.SqlFilterField;
 using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
 
 namespace LambdaSqlBuilder.SqlFilter
@@ -12,49 +11,52 @@ namespace LambdaSqlBuilder.SqlFilter
         {
         }
 
-        private SqlFilterField<TEntity, TType> CreateField<TType>(
+        private static SqlFilterField<TEntity, TType, SqlFilter<TEntity>> CreateField<TType>(
             ImmutableList<SqlFilterItemFunc> items, LambdaExpression field, SqlAlias<TEntity> alias)
         {
-            return new SqlFilterField<TEntity, TType>(items, BuildSqlField(field, alias));
+            return CreateField<TType>(items, BuildSqlField(field, alias));
         }
 
-        private SqlFilterField<TEntity, TType> CreateField<TType>(
+        private static SqlFilterField<TEntity, TType, SqlFilter<TEntity>> CreateField<TType>(
             ImmutableList<SqlFilterItemFunc> items, ISqlField field)
         {
-            return new SqlFilterField<TEntity, TType>(items, field);
+            return new SqlFilterField<TEntity, TType, SqlFilter<TEntity>>(items, field, i => new SqlFilter<TEntity>(i));
         }
 
-        public static SqlFilterField<TEntity, TType> From<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
+        public static SqlFilterField<TEntity, TType, SqlFilter<TEntity>> From<TType>(
+            Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
-            return new SqlFilterField<TEntity, TType>(ImmutableList<SqlFilterItemFunc>.Empty, BuildSqlField(field, alias));
+            return CreateField<TType>(ImmutableList<SqlFilterItemFunc>.Empty, BuildSqlField(field, alias));
         }
 
-        public static SqlFilterField<TEntity, TType> From<TType>(ISqlField field)
+        public static SqlFilterField<TEntity, TType, SqlFilter<TEntity>> From<TType>(SqlField<TEntity> field)
         {
-            return new SqlFilterField<TEntity, TType>(ImmutableList<SqlFilterItemFunc>.Empty, field);
+            return CreateField<TType>(ImmutableList<SqlFilterItemFunc>.Empty, field);
         }
 
-        public SqlFilterField<TEntity, TType> And<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
+        public SqlFilterField<TEntity, TType, SqlFilter<TEntity>> And<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             return CreateField<TType>(FilterItems.Add(SqlFilterItems.And), field, alias);
         }
 
-        public SqlFilterField<TEntity, TType> Or<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
+        public SqlFilterField<TEntity, TType, SqlFilter<TEntity>> Or<TType>(Expression<Func<TEntity, TType>> field, SqlAlias<TEntity> alias = null)
         {
             return CreateField<TType>(FilterItems.Add(SqlFilterItems.Or), field, alias);
         }
 
-        public SqlFilterField<TEntity, TType> And<TType>(ISqlField field)
+        public SqlFilterField<TEntity, TType, SqlFilter<TEntity>> And<TType>(SqlField<TEntity> field)
         {
             return CreateField<TType>(FilterItems.Add(SqlFilterItems.And), field);
         }
 
-        public SqlFilterField<TEntity, TType> Or<TType>(ISqlField field)
+        public SqlFilterField<TEntity, TType, SqlFilter<TEntity>> Or<TType>(SqlField<TEntity> field)
         {
             return CreateField<TType>(FilterItems.Add(SqlFilterItems.Or), field);
         }
 
-        public SqlFilter<TEntity> And(SqlFilterBase filter)
+        //-----------------------------------------------------------------------------------------------------
+
+        public SqlFilter<TEntity> And(SqlFilter<TEntity> filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.And)
@@ -62,7 +64,7 @@ namespace LambdaSqlBuilder.SqlFilter
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilter<TEntity> Or(SqlFilterBase filter)
+        public SqlFilter<TEntity> Or(SqlFilter<TEntity> filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
@@ -70,7 +72,7 @@ namespace LambdaSqlBuilder.SqlFilter
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilter<TEntity> AndGroup(SqlFilterBase filter)
+        public SqlFilter<TEntity> AndGroup(SqlFilter<TEntity> filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.And)
@@ -80,7 +82,7 @@ namespace LambdaSqlBuilder.SqlFilter
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilter<TEntity> OrGroup(SqlFilterBase filter)
+        public SqlFilter<TEntity> OrGroup(SqlFilter<TEntity> filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
@@ -89,6 +91,46 @@ namespace LambdaSqlBuilder.SqlFilter
                 .Add(SqlFilterItems.Build(")"));
             return new SqlFilter<TEntity>(items);
         }
+
+        //-----------------------------------------------------------------------------------------------------
+
+        public SqlFilterEx<TEntity> And(SqlFilterBase filter)
+        {
+            var items = FilterItems
+                .Add(SqlFilterItems.And)
+                .AddRange(filter.FilterItems);
+            return new SqlFilterEx<TEntity>(items);
+        }
+
+        public SqlFilterEx<TEntity> Or(SqlFilterBase filter)
+        {
+            var items = FilterItems
+                .Add(SqlFilterItems.Or)
+                .AddRange(filter.FilterItems);
+            return new SqlFilterEx<TEntity>(items);
+        }
+
+        public SqlFilterEx<TEntity> AndGroup(SqlFilterBase filter)
+        {
+            var items = FilterItems
+                .Add(SqlFilterItems.And)
+                .Add(SqlFilterItems.Build("("))
+                .AddRange(filter.FilterItems)
+                .Add(SqlFilterItems.Build(")"));
+            return new SqlFilterEx<TEntity>(items);
+        }
+
+        public SqlFilterEx<TEntity> OrGroup(SqlFilterBase filter)
+        {
+            var items = FilterItems
+                .Add(SqlFilterItems.Or)
+                .Add(SqlFilterItems.Build("("))
+                .AddRange(filter.FilterItems)
+                .Add(SqlFilterItems.Build(")"));
+            return new SqlFilterEx<TEntity>(items);
+        }
+
+        //-----------------------------------------------------------------------------------------------------
 
         public SqlFilter<TEntity> WithoutAliases()
         {
@@ -101,6 +143,15 @@ namespace LambdaSqlBuilder.SqlFilter
         {
             var filter = new SqlFilter<TEntity>(FilterItems);
             filter.MustBeWithoutAliases = false;
+            return filter;
+        }
+
+        //-----------------------------------------------------------------------------------------------------
+
+        public SqlFilter<TEntity> WithParameterPrefix(string prefix)
+        {
+            var filter = new SqlFilter<TEntity>(FilterItems);
+            filter.ParamPrefix = prefix;
             return filter;
         }
     }

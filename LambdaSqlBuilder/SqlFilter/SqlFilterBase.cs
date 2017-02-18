@@ -1,5 +1,9 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using GuardExtensions;
 using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
 
@@ -10,32 +14,87 @@ namespace LambdaSqlBuilder.SqlFilter
     public class SqlFilterBase : ISqlFilter
     {
         protected bool MustBeWithoutAliases = false;
-        
+        protected string ParamPrefix = "p";
+
         internal SqlFilterBase(ImmutableList<SqlFilterItemFunc> sqlFilterItems)
         {
             Guard.IsNotNull(sqlFilterItems);
             FilterItems = sqlFilterItems;
         }
 
+
         internal ImmutableList<SqlFilterItemFunc> FilterItems { get; }
 
-        public string Filter
+        private string _rawSql;
+        public string RawSql
         {
             get
             {
-                var configuration = new SqlFilterConfiguration
+                if (_rawSql == null)
                 {
-                    WithoutAliases = MustBeWithoutAliases,
-                    WithoutParameters = true
-                };
-                var result = string.Empty;
-                foreach (var item in FilterItems)
-                    result = result + item(configuration).Expression;
-                return result;
+                    var configuration = new SqlFilterConfiguration
+                    {
+                        WithoutAliases = MustBeWithoutAliases,
+                        WithoutParameters = true
+                    };
+
+                    _rawSql = FilterItems.Aggregate(new StringBuilder(),
+                        (sb, item) => sb.Append(item(configuration).Expression)).ToString();
+                }
+                return _rawSql;
             }
         }
 
-        public override string ToString() => Filter;
+        private SqlParameter[] _parameters;
+        public SqlParameter[] Parameters
+        {
+            get
+            {
+                if (_parameters == null)
+                    FillParametricFilter();
+                return _parameters;
+            }
+        }
+
+        private string _parametricSql;
+        public string ParametricSql
+        {
+            get
+            {
+                if (_parametricSql == null)
+                    FillParametricFilter();
+                return _parametricSql;
+            }
+        }
+
+        private void FillParametricFilter()
+        {
+            var configuration = new SqlFilterConfiguration
+            {
+                WithoutAliases = MustBeWithoutAliases,
+                WithoutParameters = false
+            };
+
+            var filterSb = new StringBuilder();
+            var parameters = new List<SqlParameter>();
+            var counter = 0;
+            foreach (var itemFunc in FilterItems)
+            {
+                var item = itemFunc(configuration);
+                filterSb.Append(item.Expression);
+                parameters.AddRange(item.Parameters.Select(p =>
+                {
+                    p.ParameterName = ParamPrefix + counter;
+                    counter++;
+                    return p;
+                }));
+            }
+
+            _parametricSql = filterSb.ToString();
+            _parameters = parameters.ToArray();
+        }
+
+        public override string ToString() => RawSql;
 
         protected static SqlAlias<TEntity> CheckAlias<TEntity>(SqlAlias<TEntity> alias)
             => alias ?? MetadataProvider.Instance.AliasFor<TEntity>();

@@ -41,7 +41,7 @@ namespace LambdaSqlBuilder
         public override string ToString()
         {
             var entity = MetadataProvider.Instance.GetTableName(JoinEntityType) + " " + JoinAlias.Value;
-            return $"{JoinType.ToString().ToUpper()} JOIN\r\n    {entity} ON {JoinCondition.Filter }";
+            return $"{JoinType.ToString().ToUpper()} JOIN\r\n    {entity} ON {JoinCondition.RawSql }";
         }
     }
 }

@@ -76,16 +76,13 @@ namespace LambdaSqlBuilder
             Guard.IsNotNull(leftExpr);
             Guard.IsNotNull(rightExpr);
 
-            var leftField = leftExpr.Expression.Type == leftAlias.EntityType
-                ? (ISqlField)CreateSqlField<TLeft>(MetadataProvider.GetPropertyName(leftExpr), leftAlias)
-                : (ISqlField)CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(leftExpr), joinAlias);
-
-            var rightField = leftField.Alias.EntityType == leftAlias.EntityType
-                ? (ISqlField)CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(rightExpr), joinAlias)
+            var rightField = leftExpr.Expression.Type == leftAlias.EntityType
+                ? CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(rightExpr), joinAlias)
                 : (ISqlField)CreateSqlField<TLeft>(MetadataProvider.GetPropertyName(rightExpr), leftAlias);
-
-            return SqlFilter<TLeft>.From<int>(leftField)
-                .EqualTo(rightField);
+            
+            return leftExpr.Expression.Type == leftAlias.EntityType
+                ? SqlFilter<TLeft>.From<int>(CreateSqlField<TLeft>(MetadataProvider.GetPropertyName(leftExpr), leftAlias)).EqualTo(rightField)
+                : (ISqlFilter)SqlFilter<TJoin>.From<int>(CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(leftExpr), joinAlias)).EqualTo(rightField);
         }
 
         protected void Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)

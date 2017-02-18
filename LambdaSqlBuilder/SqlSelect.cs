@@ -29,7 +29,7 @@ namespace LambdaSqlBuilder
                 if (WhereFilter != null)
                 {
                     sb.Append(SEPARATOR).Append("WHERE")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(WhereFilter.Filter);
+                        .Append(SEPARATOR_WITH_OFFSET).Append(WhereFilter.RawSql);
                 }
                 if (GroupByFields.Count > 0)
                 {
@@ -39,7 +39,7 @@ namespace LambdaSqlBuilder
                 if (HavingFilter != null)
                 {
                     sb.Append(SEPARATOR).Append("HAVING")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(HavingFilter.Filter);
+                        .Append(SEPARATOR_WITH_OFFSET).Append(HavingFilter.RawSql);
                 }
                 if (OrderByFields.Count > 0)
                 {

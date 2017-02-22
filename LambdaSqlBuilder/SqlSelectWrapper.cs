@@ -3,7 +3,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using GuardExtensions;
-using LambdaSqlBuilder.SqlFilter;
+using LambdaSqlBuilder.Field;
+using LambdaSqlBuilder.Filter;
 
 namespace LambdaSqlBuilder
 {

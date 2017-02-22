@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.SqlClient;
 
-namespace LambdaSqlBuilder.SqlFilter.SqlFilterItem
+namespace LambdaSqlBuilder.Filter.SqlFilterItem
 {
     internal interface ISqlFilterItem
     {

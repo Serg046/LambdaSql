@@ -45,7 +45,12 @@
       <HintPath>..\packages\GuardExtensions.1.1.2.0\lib\GuardExtensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ReadOnlyCollectionsInterfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReadOnlyCollectionInterfaces.1.0.0\lib\NET40-client\ReadOnlyCollectionsInterfaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable.Net40, Version=1.0.27.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="System.Data" />
     <Reference Include="xunit, Version=1.9.2.1705, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
@@ -65,9 +70,9 @@
     <Compile Include="Entities\Person.cs" />
     <Compile Include="MetadataProviderTest.cs" />
     <Compile Include="SqlFieldTest.cs" />
-    <Compile Include="SqlFilter\SqlFilterTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlFilterFieldTest.cs" />
+    <Compile Include="Filter\SqlFilterTest.cs" />
     <Compile Include="SqlJoinTest.cs" />
     <Compile Include="SqlSelectTest.cs" />
     <Compile Include="SqlSelectWrapperTest.cs" />

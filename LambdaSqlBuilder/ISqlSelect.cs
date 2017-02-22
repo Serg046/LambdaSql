@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using LambdaSqlBuilder.SqlFilter;
+using LambdaSqlBuilder.Field;
+using LambdaSqlBuilder.Filter;
 
 namespace LambdaSqlBuilder
 {

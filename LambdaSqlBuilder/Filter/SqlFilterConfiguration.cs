@@ -1,4 +1,4 @@
-﻿namespace LambdaSqlBuilder.SqlFilter
+﻿namespace LambdaSqlBuilder.Filter
 {
     internal class SqlFilterConfiguration
     {

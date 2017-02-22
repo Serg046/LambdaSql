@@ -1,8 +1,8 @@
-﻿using LambdaSqlBuilder.SqlFilter;
+﻿using LambdaSqlBuilder.Filter;
 using LambdaSqlBuilder.UnitTests.Entities;
 using Xunit;
 
-namespace LambdaSqlBuilder.UnitTests.SqlFilter
+namespace LambdaSqlBuilder.UnitTests.Filter
 {
     public class SqlFilterTest
     {

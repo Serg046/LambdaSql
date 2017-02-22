@@ -1,4 +1,4 @@
-﻿namespace LambdaSqlBuilder.SqlFilter.SqlFilterItem
+﻿namespace LambdaSqlBuilder.Filter.SqlFilterItem
 {
     internal static class SqlFilterItems
     {

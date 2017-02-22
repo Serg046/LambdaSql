@@ -1,8 +1,9 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using LambdaSqlBuilder.Field;
 
-namespace LambdaSqlBuilder.SqlFilter.SqlFilterItem
+namespace LambdaSqlBuilder.Filter.SqlFilterItem
 {
     internal abstract class SqlFilterParameter
     {

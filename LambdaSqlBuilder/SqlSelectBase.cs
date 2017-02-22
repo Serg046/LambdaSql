@@ -4,7 +4,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using GuardExtensions;
-using LambdaSqlBuilder.SqlFilter;
+using LambdaSqlBuilder.Field;
+using LambdaSqlBuilder.Filter;
 
 namespace LambdaSqlBuilder
 {
@@ -79,10 +80,12 @@ namespace LambdaSqlBuilder
             var rightField = leftExpr.Expression.Type == leftAlias.EntityType
                 ? CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(rightExpr), joinAlias)
                 : (ISqlField)CreateSqlField<TLeft>(MetadataProvider.GetPropertyName(rightExpr), leftAlias);
-            
+
             return leftExpr.Expression.Type == leftAlias.EntityType
-                ? SqlFilter<TLeft>.From<int>(CreateSqlField<TLeft>(MetadataProvider.GetPropertyName(leftExpr), leftAlias)).EqualTo(rightField)
-                : (ISqlFilter)SqlFilter<TJoin>.From<int>(CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(leftExpr), joinAlias)).EqualTo(rightField);
+                ? SqlFilter<TLeft>.From<object>(SqlField.From(typeof(TLeft), typeof(int),
+                    leftAlias, MetadataProvider.GetPropertyName(leftExpr))).EqualTo(rightField)
+                : (ISqlFilter)SqlFilter<TJoin>.From<object>(SqlField.From(typeof(TJoin), typeof(int),
+                    joinAlias, MetadataProvider.GetPropertyName(leftExpr))).EqualTo(rightField);
         }
 
         protected void Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)

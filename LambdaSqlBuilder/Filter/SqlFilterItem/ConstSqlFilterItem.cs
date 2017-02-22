@@ -2,7 +2,7 @@
 using System.Data.SqlClient;
 using System.Linq;
 
-namespace LambdaSqlBuilder.SqlFilter.SqlFilterItem
+namespace LambdaSqlBuilder.Filter.SqlFilterItem
 {
     internal class ConstSqlFilterItem : ISqlFilterItem
     {

@@ -1,4 +1,4 @@
-﻿using LambdaSqlBuilder.SqlFilter;
+﻿using LambdaSqlBuilder.Filter;
 using LambdaSqlBuilder.UnitTests.Entities;
 using Xunit;
 

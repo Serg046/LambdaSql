@@ -4,9 +4,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using GuardExtensions;
-using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
+using LambdaSqlBuilder.Field;
+using LambdaSqlBuilder.Filter.SqlFilterItem;
 
-namespace LambdaSqlBuilder.SqlFilter
+namespace LambdaSqlBuilder.Filter
 {
     internal class SqlFilterBuilder<TEntity>
     {

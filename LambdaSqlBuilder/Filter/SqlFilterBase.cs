@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using GuardExtensions;
-using LambdaSqlBuilder.SqlFilter.SqlFilterItem;
+using LambdaSqlBuilder.Field;
+using LambdaSqlBuilder.Filter.SqlFilterItem;
 
-namespace LambdaSqlBuilder.SqlFilter
+namespace LambdaSqlBuilder.Filter
 {
     internal delegate ISqlFilterItem SqlFilterItemFunc(SqlFilterConfiguration configuration);
 
@@ -102,11 +104,20 @@ namespace LambdaSqlBuilder.SqlFilter
         protected static string GetFieldName(LambdaExpression field, ISqlAlias alias)
             => alias.Value + "." + MetadataProvider.Instance.GetPropertyName(field);
 
-        internal static ISqlField BuildSqlField<TEntity>(LambdaExpression field, SqlAlias<TEntity> alias)
+        internal static ITypedSqlField BuildSqlField<TEntity, TFieldType>(LambdaExpression field, SqlAlias<TEntity> alias)
         {
             alias = CheckAlias(alias);
-            var sqlField = new SqlField<TEntity>() { Alias = alias, Name = MetadataProvider.Instance.GetPropertyName(field)};
+            var sqlField = new SqlField<TEntity, TFieldType> { Alias = alias, Name = MetadataProvider.Instance.GetPropertyName(field)};
             return sqlField;
+        }
+
+        protected static void CheckField<TEntity, TFieldType>(ITypedSqlField field)
+        {
+            Debug.Assert(field != null, "SqlField is null.");
+            Debug.Assert(typeof(TEntity) == field.EntityType,
+                $"Incorrect SqlField, entity type does not match. Expected: {typeof(TEntity)}; Actual: {field.EntityType}.");
+            Debug.Assert(typeof(TFieldType).IsAssignableFrom(field.FieldType),
+                $"Incorrect SqlField, field type does not match. Expected: {typeof(TFieldType)}; Actual: {field.FieldType}.");
         }
     }
 }

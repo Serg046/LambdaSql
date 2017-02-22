@@ -1,4 +1,5 @@
-﻿using LambdaSqlBuilder.UnitTests.Entities;
+﻿using LambdaSqlBuilder.Field;
+using LambdaSqlBuilder.UnitTests.Entities;
 using Xunit;
 
 namespace LambdaSqlBuilder.UnitTests

@@ -1,6 +1,6 @@
 ﻿using System.Data.SqlClient;
 
-namespace LambdaSqlBuilder.SqlFilter
+namespace LambdaSqlBuilder.Filter
 {
     public interface ISqlFilter
     {

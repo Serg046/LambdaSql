@@ -54,6 +54,15 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
+        public void And_EmptyFilterWithLambdaExpression_Success()
+        {
+            var filter = SqlFilter<Person>.Empty
+                .And(m => m.Name).EqualTo("Sergey");
+
+            Assert.Equal("pe.Name = 'Sergey'", filter.RawSql);
+        }
+
+        [Fact]
         public void And_LambdaExpressionWithAlias_Success()
         {
             var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5)
@@ -72,6 +81,15 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
+        public void And_EmptyFilterWithGenericSqlField_Success()
+        {
+            var filter = SqlFilter<Person>.Empty
+                .And(SqlField<Person>.From(m => m.Name)).EqualTo("Sergey");
+
+            Assert.Equal("pe.Name = 'Sergey'", filter.RawSql);
+        }
+
+        [Fact]
         public void And_TypedSqlField_Success()
         {
             var sqlField = new TypedSqlField(typeof(Person), typeof(string))
@@ -86,11 +104,33 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
+        public void And_EmptyFilterWithTypedSqlField_Success()
+        {
+            var sqlField = new TypedSqlField(typeof(Person), typeof(string))
+            {
+                Name = nameof(Person.Name),
+                Alias = new SqlAlias("pe")
+            };
+            var filter = SqlFilter<Person>.Empty
+                .And(sqlField).EqualTo("Sergey");
+
+            Assert.Equal("pe.Name = 'Sergey'", filter.RawSql);
+        }
+
+        [Fact]
         public void And_SqlFilter_Success()
         {
             var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
 
             Assert.Equal("pe.Id = 5 AND pe.Id = 5", filter.And(filter).RawSql);
+        }
+
+        [Fact]
+        public void And_EmptyFilterWithSqlFilter_Success()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+
+            Assert.Equal("pe.Id = 5", SqlFilter<Person>.Empty.And(filter).RawSql);
         }
 
         [Fact]
@@ -103,6 +143,14 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
+        public void And_EmptyFilterWithSqlFilterBase_Success()
+        {
+            var filter = SqlFilter<Passport>.From(m => m.Id).EqualTo(6);
+
+            Assert.Equal("pa.Id = 6", SqlFilter<Person>.Empty.And(filter).RawSql);
+        }
+
+        [Fact]
         public void Or_LambdaExpression_Success()
         {
             var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5)
@@ -112,20 +160,12 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
-        public void AndGroup_SqlFilter_Success()
+        public void Or_EmptyFilterWithLambdaExpression_Success()
         {
-            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+            var filter = SqlFilter<Person>.Empty
+                .Or(m => m.Name).EqualTo("Sergey");
 
-            Assert.Equal("pe.Id = 5 AND (pe.Id = 5)", filter.AndGroup(filter).RawSql);
-        }
-
-        [Fact]
-        public void AndGroup_SqlFilterBase_Success()
-        {
-            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
-            var filter2 = SqlFilter<Passport>.From(m => m.Id).EqualTo(6);
-
-            Assert.Equal("pe.Id = 5 AND (pa.Id = 6)", filter.AndGroup(filter2).RawSql);
+            Assert.Equal("pe.Name = 'Sergey'", filter.RawSql);
         }
 
         [Fact]
@@ -147,6 +187,15 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
+        public void Or_EmptyFilterWithGenericSqlField_Success()
+        {
+            var filter = SqlFilter<Person>.Empty
+                .Or(SqlField<Person>.From(m => m.Name)).EqualTo("Sergey");
+
+            Assert.Equal("pe.Name = 'Sergey'", filter.RawSql);
+        }
+
+        [Fact]
         public void Or_TypedSqlField_Success()
         {
             var sqlField = new TypedSqlField(typeof(Person), typeof(string))
@@ -161,11 +210,33 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
+        public void Or_EmptyFilterWithTypedSqlField_Success()
+        {
+            var sqlField = new TypedSqlField(typeof(Person), typeof(string))
+            {
+                Name = nameof(Person.Name),
+                Alias = new SqlAlias("pe")
+            };
+            var filter = SqlFilter<Person>.Empty
+                .Or(sqlField).EqualTo("Sergey");
+
+            Assert.Equal("pe.Name = 'Sergey'", filter.RawSql);
+        }
+
+        [Fact]
         public void Or_SqlFilter_Success()
         {
             var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
 
             Assert.Equal("pe.Id = 5 OR pe.Id = 5", filter.Or(filter).RawSql);
+        }
+
+        [Fact]
+        public void Or_EmptyFilterWithSqlFilter_Success()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+
+            Assert.Equal("pe.Id = 5", SqlFilter<Person>.Empty.Or(filter).RawSql);
         }
 
         [Fact]
@@ -178,11 +249,60 @@ namespace LambdaSqlBuilder.UnitTests.Filter
         }
 
         [Fact]
+        public void Or_EmptyFilterWithSqlFilterBase_Success()
+        {
+            var filter = SqlFilter<Passport>.From(m => m.Id).EqualTo(6);
+
+            Assert.Equal("pa.Id = 6", SqlFilter<Person>.Empty.Or(filter).RawSql);
+        }
+
+        [Fact]
+        public void AndGroup_SqlFilter_Success()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+
+            Assert.Equal("pe.Id = 5 AND (pe.Id = 5)", filter.AndGroup(filter).RawSql);
+        }
+
+        [Fact]
+        public void AndGroup_EmptyFilterWithSqlFilter_Success()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+
+            Assert.Equal("(pe.Id = 5)", SqlFilter<Person>.Empty.AndGroup(filter).RawSql);
+        }
+
+        [Fact]
+        public void AndGroup_SqlFilterBase_Success()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+            var filter2 = SqlFilter<Passport>.From(m => m.Id).EqualTo(6);
+
+            Assert.Equal("pe.Id = 5 AND (pa.Id = 6)", filter.AndGroup(filter2).RawSql);
+        }
+
+        [Fact]
+        public void AndGroup_EmptyFilterWithSqlFilterBase_Success()
+        {
+            var filter = SqlFilter<Passport>.From(m => m.Id).EqualTo(6);
+
+            Assert.Equal("(pa.Id = 6)", SqlFilter<Person>.Empty.AndGroup(filter).RawSql);
+        }
+
+        [Fact]
         public void OrGroup_SqlFilter_Success()
         {
             var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
 
             Assert.Equal("pe.Id = 5 OR (pe.Id = 5)", filter.OrGroup(filter).RawSql);
+        }
+
+        [Fact]
+        public void OrGroup_EmptyFilterWithSqlFilter_Success()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+
+            Assert.Equal("(pe.Id = 5)", SqlFilter<Person>.Empty.OrGroup(filter).RawSql);
         }
 
         [Fact]
@@ -193,6 +313,16 @@ namespace LambdaSqlBuilder.UnitTests.Filter
 
             Assert.Equal("pe.Id = 5 OR (pa.Id = 6)", filter.OrGroup(filter2).RawSql);
         }
+
+        [Fact]
+        public void OrGroup_EmptyFilterWithSqlFilterBase_Success()
+        {
+            var filter = SqlFilter<Passport>.From(m => m.Id).EqualTo(6);
+
+            Assert.Equal("(pa.Id = 6)", SqlFilter<Person>.Empty.OrGroup(filter).RawSql);
+        }
+
+        //---------------------------------------------------------------------------------------------------
 
         [Fact]
         public void And_Lambda_InstanceIsImmutable()

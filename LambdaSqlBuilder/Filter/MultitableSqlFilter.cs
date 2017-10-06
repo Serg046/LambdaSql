@@ -6,119 +6,119 @@ using LambdaSqlBuilder.Filter.SqlFilterItem;
 
 namespace LambdaSqlBuilder.Filter
 {
-    public class SqlFilterEx<TEntity> : SqlFilterBase
+    public class MultitableSqlFilter<TEntity> : SqlFilterBase
     {
-        internal SqlFilterEx(ImmutableList<SqlFilterItemFunc> sqlFilterItems) : base(sqlFilterItems)
+        internal MultitableSqlFilter(ImmutableList<SqlFilterItemFunc> sqlFilterItems) : base(sqlFilterItems)
         {
         }
 
-        private static SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> CreateField<TFieldType>(
+        private static SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> CreateField<TFieldType>(
             ImmutableList<SqlFilterItemFunc> items, LambdaExpression field, SqlAlias<TEntity> alias)
         {
             return CreateField<TFieldType>(items, BuildSqlField<TEntity, TFieldType>(field, alias));
         }
 
-        private static SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> CreateField<TFieldType>(
+        private static SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> CreateField<TFieldType>(
             ImmutableList<SqlFilterItemFunc> items, ITypedSqlField field)
         {
-            return new SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>>(items, field, i => new SqlFilterEx<TEntity>(i));
+            return new SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>>(items, field, i => new MultitableSqlFilter<TEntity>(i));
         }
 
         //-----------------------------------------------------------------------------------------------------
 
-        public SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> And<TFieldType>(Expression<Func<TEntity, TFieldType>> field, SqlAlias<TEntity> alias = null)
+        public SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> And<TFieldType>(Expression<Func<TEntity, TFieldType>> field, SqlAlias<TEntity> alias = null)
         {
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.And), field, alias);
         }
 
-        public SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> And<TFieldType>(SqlField<TEntity, TFieldType> field)
+        public SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> And<TFieldType>(SqlField<TEntity, TFieldType> field)
         {
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.And), field);
         }
 
-        public SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> And<TFieldType>(ITypedSqlField field)
+        public SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> And<TFieldType>(ITypedSqlField field)
         {
             CheckField<TEntity, TFieldType>(field);
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.And), field);
         }
 
-        public SqlFilterEx<TEntity> And(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> And(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .AddRange(filter.FilterItems);
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
         //-----------------------------------------------------------------------------------------------------
 
-        public SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> Or<TFieldType>(Expression<Func<TEntity, TFieldType>> field, SqlAlias<TEntity> alias = null)
+        public SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> Or<TFieldType>(Expression<Func<TEntity, TFieldType>> field, SqlAlias<TEntity> alias = null)
         {
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.Or), field, alias);
         }
 
-        public SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> Or<TFieldType>(SqlField<TEntity, TFieldType> field)
+        public SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> Or<TFieldType>(SqlField<TEntity, TFieldType> field)
         {
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.Or), field);
         }
 
-        public SqlFilterField<TEntity, TFieldType, SqlFilterEx<TEntity>> Or<TFieldType>(ITypedSqlField field)
+        public SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> Or<TFieldType>(ITypedSqlField field)
         {
             CheckField<TEntity, TFieldType>(field);
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.Or), field);
         }
 
-        public SqlFilterEx<TEntity> Or(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> Or(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .AddRange(filter.FilterItems);
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
         //-----------------------------------------------------------------------------------------------------
 
-        public SqlFilterEx<TEntity> AndGroup(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> AndGroup(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .Add(SqlFilterItems.Build("("))
                 .AddRange(filter.FilterItems)
                 .Add(SqlFilterItems.Build(")"));
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
-        public SqlFilterEx<TEntity> OrGroup(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> OrGroup(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .Add(SqlFilterItems.Build("("))
                 .AddRange(filter.FilterItems)
                 .Add(SqlFilterItems.Build(")"));
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
         //-----------------------------------------------------------------------------------------------------
 
-        public SqlFilterEx<TEntity> WithoutAliases()
+        public MultitableSqlFilter<TEntity> WithoutAliases()
         {
-            var filter = new SqlFilterEx<TEntity>(FilterItems);
+            var filter = new MultitableSqlFilter<TEntity>(FilterItems);
             filter.MustBeWithoutAliases = true;
             return filter;
         }
 
-        public SqlFilterEx<TEntity> WithAliases()
+        public MultitableSqlFilter<TEntity> WithAliases()
         {
-            var filter = new SqlFilterEx<TEntity>(FilterItems);
+            var filter = new MultitableSqlFilter<TEntity>(FilterItems);
             filter.MustBeWithoutAliases = false;
             return filter;
         }
 
         //-----------------------------------------------------------------------------------------------------
 
-        public SqlFilterEx<TEntity> WithParameterPrefix(string prefix)
+        public MultitableSqlFilter<TEntity> WithParameterPrefix(string prefix)
         {
-            var filter = new SqlFilterEx<TEntity>(FilterItems);
+            var filter = new MultitableSqlFilter<TEntity>(FilterItems);
             filter.ParamPrefix = prefix;
             return filter;
         }

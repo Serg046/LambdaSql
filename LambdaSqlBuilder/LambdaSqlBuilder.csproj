@@ -116,7 +116,7 @@
     <Compile Include="SqlAliasContainer.cs" />
     <Compile Include="SqlAliasContainerBuilder.cs" />
     <Compile Include="Field\SqlField.cs" />
-    <Compile Include="Filter\SqlFilterEx.cs" />
+    <Compile Include="Filter\MultitableSqlFilter.cs" />
     <Compile Include="Filter\SqlFilterBase.cs" />
     <Compile Include="Filter\SqlFilterItem\SqlFilterParameter.cs" />
     <Compile Include="Filter\SqlFilterItem\SqlFilterItem.cs" />

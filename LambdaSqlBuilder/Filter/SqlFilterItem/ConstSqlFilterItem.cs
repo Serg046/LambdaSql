@@ -13,6 +13,6 @@ namespace LambdaSqlBuilder.Filter.SqlFilterItem
 
         public string Expression { get; }
 
-        public IEnumerable<SqlParameter> Parameters => Enumerable.Empty<SqlParameter>();
+        public IEnumerable<SqlParameter> Parameters { get; } = Enumerable.Empty<SqlParameter>();
     }
 }

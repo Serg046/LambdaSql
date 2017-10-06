@@ -41,12 +41,13 @@ namespace LambdaSqlBuilder.Filter
         public TResult Like(string value)
         {
             Guard.IsNotEmpty(value);
-            Func<SqlFilterConfiguration, SqlFilterParameter[]> args = config => new[]
+
+            SqlFilterParameter[] GetParameters(SqlFilterConfiguration config) => new[]
             {
-                SqlFilterParameter.Create(config, _sqlField),
-                SqlFilterParameter.Create(config, value)
+                SqlFilterParameter.Create(config, _sqlField), SqlFilterParameter.Create(config, value)
             };
-            return _sqlFilterBuilder.BuildFilter<TResult>("{0} LIKE {1}", args);
+
+            return _sqlFilterBuilder.BuildFilter<TResult>("{0} LIKE {1}", GetParameters);
         }
 
         //----------------------------------------------------------------------------

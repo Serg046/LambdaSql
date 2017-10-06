@@ -43,6 +43,11 @@ namespace LambdaSqlBuilder.Filter
             return CreateField<TFieldType>(ImmutableList<SqlFilterItemFunc>.Empty, field);
         }
 
+        public static SqlFilterField<TEntity, object, SqlFilter<TEntity>> From(ITypedSqlField field)
+        {
+            return From<object>(field);
+        }
+
         //-----------------------------------------------------------------------------------------------------
 
         public SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>> And<TFieldType>(Expression<Func<TEntity, TFieldType>> field, SqlAlias<TEntity> alias = null)
@@ -61,6 +66,11 @@ namespace LambdaSqlBuilder.Filter
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.And), field);
         }
 
+        public SqlFilterField<TEntity, object, SqlFilter<TEntity>> And(ITypedSqlField field)
+        {
+            return And<object>(field);
+        }
+
         public SqlFilter<TEntity> And(SqlFilter<TEntity> filter)
         {
             var items = FilterItems
@@ -69,12 +79,12 @@ namespace LambdaSqlBuilder.Filter
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilterEx<TEntity> And(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> And(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .AddRange(filter.FilterItems);
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
         //-----------------------------------------------------------------------------------------------------
@@ -95,6 +105,11 @@ namespace LambdaSqlBuilder.Filter
             return CreateField<TFieldType>(FilterItems.Add(SqlFilterItems.Or), field);
         }
 
+        public SqlFilterField<TEntity, object, SqlFilter<TEntity>> Or(ITypedSqlField field)
+        {
+            return Or<object>(field);
+        }
+
         public SqlFilter<TEntity> Or(SqlFilter<TEntity> filter)
         {
             var items = FilterItems
@@ -103,12 +118,12 @@ namespace LambdaSqlBuilder.Filter
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilterEx<TEntity> Or(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> Or(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .AddRange(filter.FilterItems);
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
         //-----------------------------------------------------------------------------------------------------
@@ -123,14 +138,14 @@ namespace LambdaSqlBuilder.Filter
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilterEx<TEntity> AndGroup(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> AndGroup(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.And)
                 .Add(SqlFilterItems.Build("("))
                 .AddRange(filter.FilterItems)
                 .Add(SqlFilterItems.Build(")"));
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
         //-----------------------------------------------------------------------------------------------------
@@ -145,14 +160,14 @@ namespace LambdaSqlBuilder.Filter
             return new SqlFilter<TEntity>(items);
         }
 
-        public SqlFilterEx<TEntity> OrGroup(SqlFilterBase filter)
+        public MultitableSqlFilter<TEntity> OrGroup(SqlFilterBase filter)
         {
             var items = FilterItems
                 .Add(SqlFilterItems.Or)
                 .Add(SqlFilterItems.Build("("))
                 .AddRange(filter.FilterItems)
                 .Add(SqlFilterItems.Build(")"));
-            return new SqlFilterEx<TEntity>(items);
+            return new MultitableSqlFilter<TEntity>(items);
         }
 
         //-----------------------------------------------------------------------------------------------------

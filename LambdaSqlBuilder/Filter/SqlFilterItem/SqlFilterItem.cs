@@ -6,13 +6,17 @@ namespace LambdaSqlBuilder.Filter.SqlFilterItem
 {
     internal class SqlFilterItem : ISqlFilterItem
     {
+        private readonly string _expression;
+        private readonly SqlFilterParameter[] _sqlFilterParameters;
+
         public SqlFilterItem(string expression, params SqlFilterParameter[] args)
         {
-            Expression = string.Format(expression, args);
+            _expression = expression;
+            _sqlFilterParameters = args;
             Parameters = args.Select(p => p.Parameter).Where(p => p != null);
         }
 
-        public string Expression { get; } 
+        public string Expression => string.Format(_expression, _sqlFilterParameters);
 
         public IEnumerable<SqlParameter> Parameters { get; }
     }

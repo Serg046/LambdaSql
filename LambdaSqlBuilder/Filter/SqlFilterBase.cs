@@ -83,13 +83,13 @@ namespace LambdaSqlBuilder.Filter
             foreach (var itemFunc in FilterItems)
             {
                 var item = itemFunc(configuration);
-                filterSb.Append(item.Expression);
                 parameters.AddRange(item.Parameters.Select(p =>
                 {
-                    p.ParameterName = ParamPrefix + counter;
+                    p.ParameterName = $"@{ParamPrefix}{counter}";
                     counter++;
                     return p;
                 }));
+                filterSb.Append(item.Expression);
             }
 
             _parametricSql = filterSb.ToString();

@@ -16,7 +16,7 @@ namespace LambdaSqlBuilder.Filter
         private readonly SqlFilterBuilder<TEntity> _sqlFilterBuilder;
 
         internal SqlFilterField(ImmutableList<SqlFilterItemCallback> sqlFilterItems, ISqlField sqlField,
-            Func<ImmutableList<SqlFilterItemCallback>, SqlFilterBase> filterCreatorFunc)
+            Func<ImmutableList<SqlFilterItemCallback>, TResult> filterCreatorFunc)
         {
             _sqlField = sqlField;
             _sqlFilterBuilder = new SqlFilterBuilder<TEntity>(sqlFilterItems, sqlField, filterCreatorFunc);
@@ -63,14 +63,14 @@ namespace LambdaSqlBuilder.Filter
         public TResult EqualTo(SqlField<TEntity, TFieldType> field)
             => _sqlFilterBuilder.ComparisonFilter<TResult>(EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> EqualTo<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>, TRight>(EQUAL_OPERATOR, field, alias);
+        public TResult EqualTo<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
+            => _sqlFilterBuilder.ComparisonFilter<TResult, TRight>(EQUAL_OPERATOR, field, alias);
 
-        public SqlFilter<TEntity> EqualTo<TRight>(SqlField<TRight, TFieldType> field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(EQUAL_OPERATOR, field);
+        public TResult EqualTo<TRight>(SqlField<TRight, TFieldType> field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> EqualTo(ISqlField field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(EQUAL_OPERATOR, field);
+        public TResult EqualTo(ISqlField field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(EQUAL_OPERATOR, field);
 
 
         //----------------------------------------------------------------------------
@@ -86,14 +86,14 @@ namespace LambdaSqlBuilder.Filter
         public TResult NotEqualTo(SqlField<TEntity, TFieldType> field)
             => _sqlFilterBuilder.ComparisonFilter<TResult>(NOT_EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> NotEqualTo<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>, TRight>(NOT_EQUAL_OPERATOR, field, alias);
+        public TResult NotEqualTo<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
+            => _sqlFilterBuilder.ComparisonFilter<TResult, TRight>(NOT_EQUAL_OPERATOR, field, alias);
 
-        public SqlFilter<TEntity> NotEqualTo<TRight>(SqlField<TRight, TFieldType> field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(NOT_EQUAL_OPERATOR, field);
+        public TResult NotEqualTo<TRight>(SqlField<TRight, TFieldType> field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(NOT_EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> NotEqualTo(ISqlField field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(NOT_EQUAL_OPERATOR, field);
+        public TResult NotEqualTo(ISqlField field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(NOT_EQUAL_OPERATOR, field);
 
         //----------------------------------------------------------------------------
         
@@ -108,14 +108,14 @@ namespace LambdaSqlBuilder.Filter
         public TResult GreaterThan(SqlField<TEntity, TFieldType> field)
             => _sqlFilterBuilder.ComparisonFilter<TResult>(GREATER_THAN_OPERATOR, field);
 
-        public SqlFilter<TEntity> GreaterThan<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>, TRight>(GREATER_THAN_OPERATOR, field, alias);
+        public TResult GreaterThan<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
+            => _sqlFilterBuilder.ComparisonFilter<TResult, TRight>(GREATER_THAN_OPERATOR, field, alias);
 
-        public SqlFilter<TEntity> GreaterThan<TRight>(SqlField<TRight, TFieldType> field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(GREATER_THAN_OPERATOR, field);
+        public TResult GreaterThan<TRight>(SqlField<TRight, TFieldType> field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(GREATER_THAN_OPERATOR, field);
 
-        public SqlFilter<TEntity> GreaterThan(ISqlField field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(GREATER_THAN_OPERATOR, field);
+        public TResult GreaterThan(ISqlField field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(GREATER_THAN_OPERATOR, field);
 
         //----------------------------------------------------------------------------
 
@@ -130,14 +130,14 @@ namespace LambdaSqlBuilder.Filter
         public TResult GreaterThanOrEqual(SqlField<TEntity, TFieldType> field)
             => _sqlFilterBuilder.ComparisonFilter<TResult>(GREATER_THAN_OR_EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> GreaterThanOrEqual<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>, TRight>(GREATER_THAN_OR_EQUAL_OPERATOR, field, alias);
+        public TResult GreaterThanOrEqual<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
+            => _sqlFilterBuilder.ComparisonFilter<TResult, TRight>(GREATER_THAN_OR_EQUAL_OPERATOR, field, alias);
 
-        public SqlFilter<TEntity> GreaterThanOrEqual<TRight>(SqlField<TRight, TFieldType> field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(GREATER_THAN_OR_EQUAL_OPERATOR, field);
+        public TResult GreaterThanOrEqual<TRight>(SqlField<TRight, TFieldType> field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(GREATER_THAN_OR_EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> GreaterThanOrEqual(ISqlField field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(GREATER_THAN_OR_EQUAL_OPERATOR, field);
+        public TResult GreaterThanOrEqual(ISqlField field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(GREATER_THAN_OR_EQUAL_OPERATOR, field);
 
         //----------------------------------------------------------------------------
 
@@ -152,14 +152,14 @@ namespace LambdaSqlBuilder.Filter
         public TResult LessThan(SqlField<TEntity, TFieldType> field)
             => _sqlFilterBuilder.ComparisonFilter<TResult>(LESS_THAN_OPERATOR, field);
 
-        public SqlFilter<TEntity> LessThan<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>, TRight>(LESS_THAN_OPERATOR, field, alias);
+        public TResult LessThan<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
+            => _sqlFilterBuilder.ComparisonFilter<TResult, TRight>(LESS_THAN_OPERATOR, field, alias);
 
-        public SqlFilter<TEntity> LessThan<TRight>(SqlField<TRight, TFieldType> field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(LESS_THAN_OPERATOR, field);
+        public TResult LessThan<TRight>(SqlField<TRight, TFieldType> field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(LESS_THAN_OPERATOR, field);
 
-        public SqlFilter<TEntity> LessThan(ISqlField field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(LESS_THAN_OPERATOR, field);
+        public TResult LessThan(ISqlField field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(LESS_THAN_OPERATOR, field);
 
         //----------------------------------------------------------------------------
 
@@ -174,14 +174,14 @@ namespace LambdaSqlBuilder.Filter
         public TResult LessThanOrEqual(SqlField<TEntity, TFieldType> field)
             => _sqlFilterBuilder.ComparisonFilter<TResult>(LESS_THAN_OR_EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> LessThanOrEqual<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>, TRight>(LESS_THAN_OR_EQUAL_OPERATOR, field, alias);
+        public TResult LessThanOrEqual<TRight>(Expression<Func<TRight, TFieldType>> field, SqlAlias<TRight> alias = null)
+            => _sqlFilterBuilder.ComparisonFilter<TResult, TRight>(LESS_THAN_OR_EQUAL_OPERATOR, field, alias);
 
-        public SqlFilter<TEntity> LessThanOrEqual<TRight>(SqlField<TRight, TFieldType> field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(LESS_THAN_OR_EQUAL_OPERATOR, field);
+        public TResult LessThanOrEqual<TRight>(SqlField<TRight, TFieldType> field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(LESS_THAN_OR_EQUAL_OPERATOR, field);
 
-        public SqlFilter<TEntity> LessThanOrEqual(ISqlField field)
-            => _sqlFilterBuilder.ComparisonFilter<SqlFilter<TEntity>>(LESS_THAN_OR_EQUAL_OPERATOR, field);
+        public TResult LessThanOrEqual(ISqlField field)
+            => _sqlFilterBuilder.ComparisonFilter<TResult>(LESS_THAN_OR_EQUAL_OPERATOR, field);
 
         //----------------------------------------------------------------------------
 

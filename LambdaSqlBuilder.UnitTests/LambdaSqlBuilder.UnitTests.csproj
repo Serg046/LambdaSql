@@ -72,7 +72,7 @@
     <Compile Include="MetadataProviderTest.cs" />
     <Compile Include="SqlFieldTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlFilterFieldTest.cs" />
+    <Compile Include="Filter\SqlFilterFieldTest.cs" />
     <Compile Include="Filter\SqlFilterTest.cs" />
     <Compile Include="SqlJoinTest.cs" />
     <Compile Include="SqlSelectTest.cs" />

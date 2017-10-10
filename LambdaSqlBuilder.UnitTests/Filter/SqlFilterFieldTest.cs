@@ -3,7 +3,7 @@ using LambdaSqlBuilder.Filter;
 using LambdaSqlBuilder.UnitTests.Entities;
 using Xunit;
 
-namespace LambdaSqlBuilder.UnitTests
+namespace LambdaSqlBuilder.UnitTests.Filter
 {
     public class SqlFilterFieldTest
     {

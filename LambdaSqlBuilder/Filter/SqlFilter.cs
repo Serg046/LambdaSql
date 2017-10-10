@@ -28,9 +28,6 @@ namespace LambdaSqlBuilder.Filter
             return new SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>>(items, field, i => new SqlFilter<TEntity>(i));
         }
 
-        private ImmutableList<SqlFilterItemFunc> AddItem(SqlFilterItemFunc item)
-            => FilterItems.Count == 0 ? FilterItems : FilterItems.Add(item);
-
         //-----------------------------------------------------------------------------------------------------
 
         public static SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>> From<TFieldType>(

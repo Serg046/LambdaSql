@@ -119,5 +119,8 @@ namespace LambdaSqlBuilder.Filter
             Debug.Assert(typeof(TFieldType).IsAssignableFrom(field.FieldType),
                 $"Incorrect SqlField, field type does not match. Expected: {typeof(TFieldType)}; Actual: {field.FieldType}.");
         }
+
+        internal ImmutableList<SqlFilterItemFunc> AddItem(SqlFilterItemFunc item)
+            => FilterItems.Count == 0 ? FilterItems : FilterItems.Add(item);
     }
 }

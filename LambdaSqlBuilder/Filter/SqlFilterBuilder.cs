@@ -11,11 +11,11 @@ namespace LambdaSqlBuilder.Filter
 {
     internal class SqlFilterBuilder<TEntity>
     {
-        private readonly ImmutableList<SqlFilterItemFunc> _sqlFilterItems;
+        private readonly ImmutableList<SqlFilterItemCallback> _sqlFilterItems;
         private readonly ISqlField _sqlField;
-        private readonly Func<ImmutableList<SqlFilterItemFunc>, SqlFilterBase> _filterCreatorFunc;
+        private readonly Func<ImmutableList<SqlFilterItemCallback>, SqlFilterBase> _filterCreatorFunc;
 
-        public SqlFilterBuilder(ImmutableList<SqlFilterItemFunc> sqlFilterItems, ISqlField sqlField, Func<ImmutableList<SqlFilterItemFunc>, SqlFilterBase> filterCreatorFunc)
+        public SqlFilterBuilder(ImmutableList<SqlFilterItemCallback> sqlFilterItems, ISqlField sqlField, Func<ImmutableList<SqlFilterItemCallback>, SqlFilterBase> filterCreatorFunc)
         {
             _sqlFilterItems = sqlFilterItems;
             _sqlField = sqlField;
@@ -25,7 +25,7 @@ namespace LambdaSqlBuilder.Filter
         private ISqlAlias CheckAlias<T>(ISqlAlias alias)
             => alias ?? MetadataProvider.Instance.AliasFor<T>();
 
-        private T BuildFilter<T>(ImmutableList<SqlFilterItemFunc> sqlFilterItems)
+        private T BuildFilter<T>(ImmutableList<SqlFilterItemCallback> sqlFilterItems)
             => (dynamic)_filterCreatorFunc(sqlFilterItems);
 
         public T BuildFilter<T>(string expression, ISqlField sqlField)

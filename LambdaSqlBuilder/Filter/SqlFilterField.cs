@@ -15,8 +15,8 @@ namespace LambdaSqlBuilder.Filter
         private readonly ISqlField _sqlField;
         private readonly SqlFilterBuilder<TEntity> _sqlFilterBuilder;
 
-        internal SqlFilterField(ImmutableList<SqlFilterItemFunc> sqlFilterItems, ISqlField sqlField,
-            Func<ImmutableList<SqlFilterItemFunc>, SqlFilterBase> filterCreatorFunc)
+        internal SqlFilterField(ImmutableList<SqlFilterItemCallback> sqlFilterItems, ISqlField sqlField,
+            Func<ImmutableList<SqlFilterItemCallback>, SqlFilterBase> filterCreatorFunc)
         {
             _sqlField = sqlField;
             _sqlFilterBuilder = new SqlFilterBuilder<TEntity>(sqlFilterItems, sqlField, filterCreatorFunc);

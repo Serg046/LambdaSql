@@ -11,21 +11,21 @@ using LambdaSqlBuilder.Filter.SqlFilterItem;
 
 namespace LambdaSqlBuilder.Filter
 {
-    internal delegate ISqlFilterItem SqlFilterItemFunc(SqlFilterConfiguration configuration);
+    internal delegate ISqlFilterItem SqlFilterItemCallback(SqlFilterConfiguration configuration);
 
     public class SqlFilterBase : ISqlFilter
     {
         protected bool MustBeWithoutAliases = false;
         protected string ParamPrefix = "p";
 
-        internal SqlFilterBase(ImmutableList<SqlFilterItemFunc> sqlFilterItems)
+        internal SqlFilterBase(ImmutableList<SqlFilterItemCallback> sqlFilterItems)
         {
             Guard.IsNotNull(sqlFilterItems);
             FilterItems = sqlFilterItems;
         }
 
 
-        internal ImmutableList<SqlFilterItemFunc> FilterItems { get; }
+        internal ImmutableList<SqlFilterItemCallback> FilterItems { get; }
 
         private string _rawSql;
         public string RawSql
@@ -120,7 +120,7 @@ namespace LambdaSqlBuilder.Filter
                 $"Incorrect SqlField, field type does not match. Expected: {typeof(TFieldType)}; Actual: {field.FieldType}.");
         }
 
-        internal ImmutableList<SqlFilterItemFunc> AddItem(SqlFilterItemFunc item)
+        internal ImmutableList<SqlFilterItemCallback> AddItem(SqlFilterItemCallback item)
             => FilterItems.Count == 0 ? FilterItems : FilterItems.Add(item);
     }
 }

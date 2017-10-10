@@ -8,18 +8,18 @@ namespace LambdaSqlBuilder.Filter
 {
     public class MultitableSqlFilter<TEntity> : SqlFilterBase
     {
-        internal MultitableSqlFilter(ImmutableList<SqlFilterItemFunc> sqlFilterItems) : base(sqlFilterItems)
+        internal MultitableSqlFilter(ImmutableList<SqlFilterItemCallback> sqlFilterItems) : base(sqlFilterItems)
         {
         }
 
         private static SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> CreateField<TFieldType>(
-            ImmutableList<SqlFilterItemFunc> items, LambdaExpression field, SqlAlias<TEntity> alias)
+            ImmutableList<SqlFilterItemCallback> items, LambdaExpression field, SqlAlias<TEntity> alias)
         {
             return CreateField<TFieldType>(items, BuildSqlField<TEntity, TFieldType>(field, alias));
         }
 
         private static SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>> CreateField<TFieldType>(
-            ImmutableList<SqlFilterItemFunc> items, ITypedSqlField field)
+            ImmutableList<SqlFilterItemCallback> items, ITypedSqlField field)
         {
             return new SqlFilterField<TEntity, TFieldType, MultitableSqlFilter<TEntity>>(items, field, i => new MultitableSqlFilter<TEntity>(i));
         }

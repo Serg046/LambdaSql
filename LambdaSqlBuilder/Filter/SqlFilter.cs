@@ -8,22 +8,22 @@ namespace LambdaSqlBuilder.Filter
 {
     public class SqlFilter<TEntity> : SqlFilterBase
     {
-        internal SqlFilter(ImmutableList<SqlFilterItemFunc> sqlFilterItems) : base(sqlFilterItems)
+        internal SqlFilter(ImmutableList<SqlFilterItemCallback> sqlFilterItems) : base(sqlFilterItems)
         {
         }
 
-        public static SqlFilter<TEntity> Empty { get; } = new SqlFilter<TEntity>(ImmutableList<SqlFilterItemFunc>.Empty);
+        public static SqlFilter<TEntity> Empty { get; } = new SqlFilter<TEntity>(ImmutableList<SqlFilterItemCallback>.Empty);
 
         //-----------------------------------------------------------------------------------------------------
 
         private static SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>> CreateField<TFieldType>(
-            ImmutableList<SqlFilterItemFunc> items, LambdaExpression field, SqlAlias<TEntity> alias)
+            ImmutableList<SqlFilterItemCallback> items, LambdaExpression field, SqlAlias<TEntity> alias)
         {
             return CreateField<TFieldType>(items, BuildSqlField<TEntity, TFieldType>(field, alias));
         }
 
         private static SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>> CreateField<TFieldType>(
-            ImmutableList<SqlFilterItemFunc> items, ITypedSqlField field)
+            ImmutableList<SqlFilterItemCallback> items, ITypedSqlField field)
         {
             return new SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>>(items, field, i => new SqlFilter<TEntity>(i));
         }
@@ -33,18 +33,18 @@ namespace LambdaSqlBuilder.Filter
         public static SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>> From<TFieldType>(
             Expression<Func<TEntity, TFieldType>> field, SqlAlias<TEntity> alias = null)
         {
-            return CreateField<TFieldType>(ImmutableList<SqlFilterItemFunc>.Empty, BuildSqlField<TEntity, TFieldType>(field, alias));
+            return CreateField<TFieldType>(ImmutableList<SqlFilterItemCallback>.Empty, BuildSqlField<TEntity, TFieldType>(field, alias));
         }
 
         public static SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>> From<TFieldType>(SqlField<TEntity, TFieldType> field)
         {
-            return CreateField<TFieldType>(ImmutableList<SqlFilterItemFunc>.Empty, field);
+            return CreateField<TFieldType>(ImmutableList<SqlFilterItemCallback>.Empty, field);
         }
 
         public static SqlFilterField<TEntity, TFieldType, SqlFilter<TEntity>> From<TFieldType>(ITypedSqlField field)
         {
             CheckField<TEntity, TFieldType>(field);
-            return CreateField<TFieldType>(ImmutableList<SqlFilterItemFunc>.Empty, field);
+            return CreateField<TFieldType>(ImmutableList<SqlFilterItemCallback>.Empty, field);
         }
 
         public static SqlFilterField<TEntity, object, SqlFilter<TEntity>> From(ITypedSqlField field)

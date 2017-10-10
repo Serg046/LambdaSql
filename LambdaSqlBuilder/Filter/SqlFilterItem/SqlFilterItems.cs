@@ -2,8 +2,8 @@
 {
     internal static class SqlFilterItems
     {
-        public static SqlFilterItemFunc And = config => new ConstSqlFilterItem(" AND ");
-        public static SqlFilterItemFunc Or = config => new ConstSqlFilterItem(" OR ");
-        public static SqlFilterItemFunc Build(string value) => config => new ConstSqlFilterItem(value);
+        public static SqlFilterItemCallback And = config => new ConstSqlFilterItem(" AND ");
+        public static SqlFilterItemCallback Or = config => new ConstSqlFilterItem(" OR ");
+        public static SqlFilterItemCallback Build(string value) => config => new ConstSqlFilterItem(value);
     }
 }

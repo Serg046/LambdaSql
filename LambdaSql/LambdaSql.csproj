@@ -125,6 +125,7 @@
     <Compile Include="SqlSelect.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlSelectBase.cs" />
+    <Compile Include="SqlSelectInfo.cs" />
     <Compile Include="SqlSelectWrapper.cs" />
   </ItemGroup>
   <ItemGroup>

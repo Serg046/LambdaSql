@@ -13,6 +13,10 @@ namespace LambdaSql
         {
         }
 
+        private SqlSelect(SqlSelectInfo info) : base(info)
+        {
+        }
+
         public string CommandText
         {
             get
@@ -23,29 +27,34 @@ namespace LambdaSql
                 sb.Append("FROM").Append(SEPARATOR_WITH_OFFSET)
                     .Append(MetadataProvider.GetTableName<T>())
                     .Append(" ").Append(MetadataProvider.AliasFor<T>().Value);
-                if (Joins.Count > 0)
+                var joins = Info.Joins();
+                if (joins.Count > 0)
                 {
-                    sb.Append(SEPARATOR).Append(string.Join(SEPARATOR, Joins));
+                    sb.Append(SEPARATOR).Append(string.Join(SEPARATOR, joins));
                 }
-                if (WhereFilter != null)
+                var where = Info.Where();
+                if (where != null)
                 {
                     sb.Append(SEPARATOR).Append("WHERE")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(WhereFilter.RawSql);
+                        .Append(SEPARATOR_WITH_OFFSET).Append(where.RawSql);
                 }
-                if (GroupByFields.Count > 0)
+                var groupByFields = Info.GroupByFields();
+                if (groupByFields.Count > 0)
                 {
                     sb.Append(SEPARATOR).Append("GROUP BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", GroupByFields));
+                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", groupByFields));
                 }
-                if (HavingFilter != null)
+                var having = Info.Having();
+                if (having != null)
                 {
                     sb.Append(SEPARATOR).Append("HAVING")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(HavingFilter.RawSql);
+                        .Append(SEPARATOR_WITH_OFFSET).Append(having.RawSql);
                 }
-                if (OrderByFields.Count > 0)
+                var orderByFields = Info.OrderByFields();
+                if (orderByFields.Count > 0)
                 {
                     sb.Append(SEPARATOR).Append("ORDER BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", OrderByFields));
+                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", orderByFields));
                 }
                 return sb.ToString();
             }
@@ -58,35 +67,25 @@ namespace LambdaSql
 
         public Type EntityType => typeof(T);
 
-        ISqlSelect ISqlSelect.Top(int top, bool topByPercent) => Top(top, topByPercent);
-        public SqlSelect<T> Top(int top, bool topByPercent = false)
+        ISqlSelect ISqlSelect.Top(int top) => Top(top);
+        public SqlSelect<T> Top(int top)
         {
-            if (!topByPercent)
+            if (top < 1)
             {
-                if (top < 1)
-                    throw new InvalidOperationException("The value must be greather than 0");
+                throw new InvalidOperationException("The value must be greather than 0");
             }
-            else
-            {
-                if (top < 1 || top > 100)
-                    throw new InvalidOperationException("The value must be greather between 0 and 100");
-            }
-            TopByPercent = topByPercent;
-            TopLimit = top;
-            return this;
+            return new SqlSelect<T>(Info.Top(top));
         }
 
         public SqlSelect<T> Distinct()
         {
-            Distinct(true);
-            return this;
+            return Distinct(true);
         }
 
         ISqlSelect ISqlSelect.Distinct(bool isDistinct) => Distinct(isDistinct);
         public SqlSelect<T> Distinct(bool isDistinct)
         {
-            IsDistinct = isDistinct;
-            return this;
+            return new SqlSelect<T>(Info.Distinct(isDistinct));
         }
 
         //-------------------------------------------------------------------------
@@ -95,22 +94,19 @@ namespace LambdaSql
         public SqlSelect<T> AddFields(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
-            SelectFields.AddRange(fields);
-            return this;
+            return new SqlSelect<T>(Info.SelectFields(fields));
         }
 
         public SqlSelect<T> AddFields(params Expression<Func<T, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<T>(), fields, SelectFields);
-            return this;
+            return AddFields(CreateSqlFields(MetadataProvider.AliasFor<T>(), fields));
         }
 
         public SqlSelect<T> AddFields<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<TEntity>(), fields, SelectFields);
-            return this;
+            return AddFields(CreateSqlFields(MetadataProvider.AliasFor<TEntity>(), fields));
         }
 
         ISqlSelect ISqlSelect.AddFields<TEntity>(SqlAlias<TEntity> alias,
@@ -126,8 +122,7 @@ namespace LambdaSql
         {
             Guard.IsNotNull(alias);
             Guard.IsNotNull(fields);
-            AddFields(alias, fields, SelectFields);
-            return this;
+            return AddFields(CreateSqlFields(alias, fields));
         }
 
         //-------------------------------------------------------------------------
@@ -136,22 +131,19 @@ namespace LambdaSql
         public SqlSelect<T> GroupBy(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
-            GroupByFields.AddRange(fields);
-            return this;
+            return new SqlSelect<T>(Info.GroupByFields(fields));
         }
 
         public SqlSelect<T> GroupBy(params Expression<Func<T, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<T>(), fields, GroupByFields);
-            return this;
+            return GroupBy(CreateSqlFields(MetadataProvider.AliasFor<T>(), fields));
         }
 
         public SqlSelect<T> GroupBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<TEntity>(), fields, GroupByFields);
-            return this;
+            return GroupBy(CreateSqlFields(MetadataProvider.AliasFor<TEntity>(), fields));
         }
 
         ISqlSelect ISqlSelect.GroupBy<TEntity>(SqlAlias<TEntity> alias,
@@ -167,8 +159,7 @@ namespace LambdaSql
         {
             Guard.IsNotNull(alias);
             Guard.IsNotNull(fields);
-            AddFields(alias, fields, GroupByFields);
-            return this;
+            return GroupBy(CreateSqlFields(alias, fields));
         }
 
         //-------------------------------------------------------------------------
@@ -177,22 +168,19 @@ namespace LambdaSql
         public SqlSelect<T> OrderBy(params ISqlField[] fields)
         {
             Guard.IsNotNull(fields);
-            OrderByFields.AddRange(fields);
-            return this;
+            return new SqlSelect<T>(Info.OrderByFields(fields));
         }
 
         public SqlSelect<T> OrderBy(params Expression<Func<T, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<T>(), fields, OrderByFields);
-            return this;
+            return OrderBy(CreateSqlFields(MetadataProvider.AliasFor<T>(), fields));
         }
 
         public SqlSelect<T> OrderBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
             Guard.IsNotNull(fields);
-            AddFields(MetadataProvider.AliasFor<TEntity>(), fields, OrderByFields);
-            return this;
+            return OrderBy(CreateSqlFields(MetadataProvider.AliasFor<TEntity>(), fields));
         }
 
         ISqlSelect ISqlSelect.OrderBy<TEntity>(SqlAlias<TEntity> alias,
@@ -208,8 +196,7 @@ namespace LambdaSql
         {
             Guard.IsNotNull(alias);
             Guard.IsNotNull(fields);
-            AddFields(alias, fields, OrderByFields);
-            return this;
+            return OrderBy(CreateSqlFields(alias, fields));
         }
 
         //-------------------------------------------------------------------------
@@ -229,8 +216,7 @@ namespace LambdaSql
         public SqlSelect<T> InnerJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
-            Join(JoinType.Inner, condition, joinAlias);
-            return this;
+            return new SqlSelect<T>(Join(JoinType.Inner, condition, joinAlias));
         }
 
         public SqlSelect<T> LeftJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
@@ -248,8 +234,7 @@ namespace LambdaSql
         public SqlSelect<T> LeftJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
-            Join(JoinType.Left, condition, joinAlias);
-            return this;
+            return new SqlSelect<T>(Join(JoinType.Left, condition, joinAlias));
         }
 
         public SqlSelect<T> RightJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
@@ -267,8 +252,7 @@ namespace LambdaSql
         public SqlSelect<T> RightJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
-            Join(JoinType.Right, condition, joinAlias);
-            return this;
+            return new SqlSelect<T>(Join(JoinType.Right, condition, joinAlias));
         }
 
         public SqlSelect<T> FullJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
@@ -286,8 +270,7 @@ namespace LambdaSql
         public SqlSelect<T> FullJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
             Guard.IsNotNull(condition);
-            Join(JoinType.Full, condition, joinAlias);
-            return this;
+            return new SqlSelect<T>(Join(JoinType.Full, condition, joinAlias));
         }
 
         ISqlSelect ISqlSelect.Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias)
@@ -318,15 +301,13 @@ namespace LambdaSql
         ISqlSelect ISqlSelect.Where(ISqlFilter filter) => Where(filter);
         public SqlSelect<T> Where(ISqlFilter filter)
         {
-            WhereFilter = filter;
-            return this;
+            return new SqlSelect<T>(Info.Where(filter));
         }
 
         ISqlSelect ISqlSelect.Having(ISqlFilter filter) => Having(filter);
         public SqlSelect<T> Having(ISqlFilter filter)
         {
-            HavingFilter = filter;
-            return this;
+            return new SqlSelect<T>(Info.Having(filter));
         }
     }
 }

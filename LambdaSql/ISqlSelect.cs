@@ -20,18 +20,18 @@ namespace LambdaSql
     {
         string CommandText { get; }
         Type EntityType { get; }
-        ISqlSelect Top(int top, bool topByPercent = false);
+        ISqlSelect Top(int top);
         ISqlSelect Distinct(bool isDistinct);
 
-        ISqlSelect AddFields(ISqlField[] fields);
+        ISqlSelect AddFields(params ISqlField[] fields);
         ISqlSelect AddFields<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
-        ISqlSelect GroupBy(ISqlField[] fields);
+        ISqlSelect GroupBy(params ISqlField[] fields);
         ISqlSelect GroupBy<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 
-        ISqlSelect OrderBy(ISqlField[] fields);
+        ISqlSelect OrderBy(params ISqlField[] fields);
         ISqlSelect OrderBy<TEntity>(SqlAlias<TEntity> alias = null,
             params Expression<Func<TEntity, object>>[] fields);
 

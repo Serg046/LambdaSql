@@ -46,21 +46,6 @@ FROM
         }
 
         [Fact]
-        public void TopPercent()
-        {
-            var select = new SqlSelect<Person>()
-                .AddFields(p => p.Id)
-                .Top(5, true);
-
-            var expected =
-@"SELECT
-    TOP 5 PERCENT pe.Id
-FROM
-    Person pe";
-            Assert.Equal(expected, select.CommandText);
-        }
-
-        [Fact]
         public void Where()
         {
             var select = new SqlSelect<Person>()

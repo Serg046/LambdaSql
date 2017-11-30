@@ -39,7 +39,7 @@ FROM
 
             var expected =
 @"SELECT
-    DISTINCT TOP 5 pe.Id
+    TOP 5 DISTINCT pe.Id
 FROM
     Person pe";
             Assert.Equal(expected, select.CommandText);

@@ -1,26 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using LambdaSql.Field;
 using LambdaSql.Filter;
+using LambdaSql.QueryBuilder;
 
 namespace LambdaSql
 {
-    public interface ISqlSelectInfo
-    {
-        IEnumerable<ISqlField> SelectFields { get; }
-        IEnumerable<ISqlField> GroupByFields { get; }
-        IEnumerable<ISqlField> OrderByFields { get; }
-        IEnumerable<ISqlAlias> TableAliases { get; }
-        ISqlFilter WhereFilter { get; }
-        ISqlFilter HavingFilter { get; }
-    }
-
-    public interface ISqlSelect : ISqlSelectInfo
+    public interface ISqlSelect
     {
         string CommandText { get; }
         Type EntityType { get; }
-        ISqlSelect Top(int top);
+
+        SqlSelectInfo Info { get; }
+
+        ISqlSelect Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback);
         ISqlSelect Distinct(bool isDistinct);
 
         ISqlSelect AddFields(params ISqlField[] fields);

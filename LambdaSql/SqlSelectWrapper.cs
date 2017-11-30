@@ -1,81 +1,43 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using GuardExtensions;
 using LambdaSql.Field;
 using LambdaSql.Filter;
+using LambdaSql.QueryBuilder;
 
 namespace LambdaSql
 {
     public class SqlSelect : SqlSelectBase, ISqlSelect
     {
+        private readonly ISqlSelectQueryBuilder _queryBuilder;
         private readonly ISqlSelect _innerSqlSelect;
 
-        public SqlSelect(ISqlSelect innerSqlSelect, ISqlAlias alias) : base(alias)
+        public SqlSelect(ISqlSelect innerSqlSelect, ISqlAlias alias) 
+            : this(innerSqlSelect, new SqlSelectInfo(alias),
+                  new SqlSelectWrapperQueryBuilder(innerSqlSelect))
         {
-            Guard.IsNotNull(innerSqlSelect, alias);
+        }
+
+        private SqlSelect(ISqlSelect innerSqlSelect, SqlSelectInfo info, ISqlSelectQueryBuilder queryBuilder) : base(info)
+        {
+            Guard.IsNotNull(innerSqlSelect);
             _innerSqlSelect = innerSqlSelect;
+            _queryBuilder = queryBuilder;
         }
 
-        private SqlSelect(ISqlSelect innerSqlSelect, SqlSelectInfo info) : base(info)
-        {
-            _innerSqlSelect = innerSqlSelect;
-        }
+        private SqlSelect CreateSqlSelect(SqlSelectInfo info) => new SqlSelect(_innerSqlSelect, info, _queryBuilder);
+        
+        ISqlSelect ISqlSelect.Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback) => Extend(decorationCallback);
+        public SqlSelect Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback)
+            => new SqlSelect(_innerSqlSelect, Info, decorationCallback(_queryBuilder));
 
-        private SqlSelect CreateSqlSelect(SqlSelectInfo info) => new SqlSelect(_innerSqlSelect, info);
+        private string _commandText;
+        public string CommandText => _commandText ?? (_commandText = _queryBuilder.Build(Info));
 
-        public string CommandText
-        {
-            get
-            {
-                CheckAsAliases();
-                CheckSelectedFields();
-                var sb = new StringBuilder("SELECT").Append(SEPARATOR_WITH_OFFSET);
-                SelectedFields(sb);
-                sb.Append("FROM")
-                    .Append(SEPARATOR).Append("(").Append(SEPARATOR_WITH_OFFSET)
-                    .Append(_innerSqlSelect.CommandText.Replace(SEPARATOR, SEPARATOR_WITH_OFFSET))
-                    .Append(SEPARATOR).Append(") AS ").Append(Info.Alias.Value);
-                var groupByFields = Info.GroupByFields();
-                if (groupByFields.Count > 0)
-                {
-                    sb.Append(SEPARATOR).Append("GROUP BY")
-                        .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", groupByFields.Select(f => f.ShortView)));
-                }
-                return sb.ToString();
-            }
-        }
-
-        private void CheckSelectedFields()
-        {
-            foreach (var selectField in Info.SelectFields())
-            {
-                if (!_innerSqlSelect.SelectFields.Any(f => f.Name == selectField.Name
-                                                           && f.EntityType == selectField.EntityType))
-                {
-                    throw new InvalidOperationException(
-                        $"'{selectField}' is not set in the inner select query.");
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            return CommandText;
-        }
+        public override string ToString() => CommandText;
 
         public Type EntityType => null;
-
-        ISqlSelect ISqlSelect.Top(int top) => Top(top);
-        public SqlSelect Top(int top)
-        {
-            if (top < 1)
-            {
-                throw new InvalidOperationException("The value must be greather than 0");
-            }
-            return new SqlSelect(_innerSqlSelect, Info.Top(top));
-        }
 
         public SqlSelect Distinct()
         {

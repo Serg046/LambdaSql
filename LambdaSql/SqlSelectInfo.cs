@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using GuardExtensions;
 using LambdaSql.Filter;
 
 namespace LambdaSql
@@ -11,6 +12,7 @@ namespace LambdaSql
     {
         public SqlSelectInfo(ISqlAlias alias)
         {
+            Guard.IsNotNull(alias);
             Alias = alias;
         }
 

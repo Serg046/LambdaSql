@@ -43,7 +43,6 @@ namespace LambdaSql.Filter.SqlFilterItem
                 get
                 {
                     var field = _sqlField.Clone();
-                    field.AsAlias = null;
                     if (_configuration.WithoutAliases)
                         field.Alias = null;
                     return field.ShortView;

@@ -102,6 +102,8 @@
     <Compile Include="Field\AggregateFunc.cs" />
     <Compile Include="Field\ISqlField.cs" />
     <Compile Include="ISqlSelect.cs" />
+    <Compile Include="MsSqlServerExtensions.cs" />
+    <Compile Include="QueryBuilder\ISqlSelectQueryBuilder.cs" />
     <Compile Include="LibHelper.cs" />
     <Compile Include="Field\ITypedSqlField.cs" />
     <Compile Include="Filter\ISqlFilter.cs" />
@@ -126,7 +128,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlSelectBase.cs" />
     <Compile Include="SqlSelectInfo.cs" />
+    <Compile Include="QueryBuilder\SqlSelectQueryBuilder.cs" />
+    <Compile Include="QueryBuilder\SqlSelectQueryBuilderBase.cs" />
     <Compile Include="SqlSelectWrapper.cs" />
+    <Compile Include="QueryBuilder\SqlSelectWrapperQueryBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

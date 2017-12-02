@@ -94,7 +94,7 @@ WHERE
 ---
 Name = @w0, Value = Sergey
 ```
-#### Group by and having clauses:
+#### Group by and having clauses
 ```csharp
 var qry = new SqlSelect<Person>()
     .AddFields(p => p.Name)
@@ -170,4 +170,11 @@ FROM
     Person pe
 INNER JOIN
     Passport pa ON pe.PassportId = pa.Id
+---
+SELECT
+    *
+FROM
+    Person pe
+INNER JOIN
+    Passport pa ON pa.Id = pe.PassportId
 ```

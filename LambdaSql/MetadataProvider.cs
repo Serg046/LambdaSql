@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq.Expressions;
 using GuardExtensions;
 
@@ -24,7 +26,7 @@ namespace LambdaSql
         {
             var provider = Instance as MetadataProvider;
             if (provider == null)
-                throw new InvalidOperationException("Supports only the default metadata provider");
+                throw new InvalidOperationException("The method supports only the default metadata provider");
             Guard.IsNotNull(aliasContainerBuilder);
             Guard.IsPositive(aliasContainerBuilder.RegisteredAliases.Count);
             provider._aliasContainer = new SqlAliasContainer(aliasContainerBuilder.RegisteredAliases);
@@ -58,6 +60,8 @@ namespace LambdaSql
             Guard.IsNotNull(memberExpression);
             return memberExpression.Member.Name;
         }
+
+        public DbParameter CreateDbParameter() => new SqlParameter();
 
         public virtual string ParameterToString(object value)
         {

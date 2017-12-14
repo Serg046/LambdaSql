@@ -12,7 +12,7 @@ namespace LambdaSql.QueryBuilder
 
         }
 
-        public override string Build(SqlSelectInfo info)
+        public override string Build(SqlSelectInfo info, bool parametric)
         {
             CheckAsAliases(info);
             var sb = new StringBuilder("SELECT").Append(SEPARATOR_WITH_OFFSET)
@@ -21,9 +21,9 @@ namespace LambdaSql.QueryBuilder
                 .Append(_tableName)
                 .Append(" ").Append(info.Alias.Value);
             AppendJoins(sb, info);
-            AppendFilter(sb, info, "WHERE", sInfo => sInfo.Where());
+            AppendFilter(sb, info, "WHERE", sInfo => sInfo.Where(), parametric);
             AppendFields(sb, info, "GROUP BY", sInfo => sInfo.GroupByFields());
-            AppendFilter(sb, info, "HAVING", sInfo => sInfo.Having());
+            AppendFilter(sb, info, "HAVING", sInfo => sInfo.Having(), parametric);
             AppendFields(sb, info, "ORDER BY", sInfo => sInfo.OrderByFields());
             return sb.ToString();
         }

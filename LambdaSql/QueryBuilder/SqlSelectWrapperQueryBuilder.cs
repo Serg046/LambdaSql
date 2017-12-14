@@ -14,20 +14,21 @@ namespace LambdaSql.QueryBuilder
 
         }
 
-        public override string Build(SqlSelectInfo info)
+        public override string Build(SqlSelectInfo info, bool parametric)
         {
             CheckAsAliases(info);
             CheckSelectedFields(info);
+            var innerSql = parametric ? _innerSqlSelect.ParametricSql : _innerSqlSelect.RawSql;
             var sb = new StringBuilder("SELECT").Append(SEPARATOR_WITH_OFFSET)
                 .Append(GetSelectedFields(info)).Append(SEPARATOR)
                 .Append("FROM")
                 .Append(SEPARATOR).Append("(").Append(SEPARATOR_WITH_OFFSET)
-                .Append(_innerSqlSelect.CommandText.Replace(SEPARATOR, SEPARATOR_WITH_OFFSET))
+                .Append(innerSql.Replace(SEPARATOR, SEPARATOR_WITH_OFFSET))
                 .Append(SEPARATOR).Append(") AS ").Append(info.Alias.Value);
             AppendJoins(sb, info);
-            AppendFilter(sb, info, "WHERE", sInfo => sInfo.Where());
+            AppendFilter(sb, info, "WHERE", sInfo => sInfo.Where(), parametric);
             AppendFields(sb, info, "GROUP BY", sInfo => sInfo.GroupByFields());
-            AppendFilter(sb, info, "HAVING", sInfo => sInfo.Having());
+            AppendFilter(sb, info, "HAVING", sInfo => sInfo.Having(), parametric);
             AppendFields(sb, info, "ORDER BY", sInfo => sInfo.OrderByFields());
             return sb.ToString();
         }

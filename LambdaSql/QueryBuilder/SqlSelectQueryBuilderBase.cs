@@ -33,7 +33,7 @@ namespace LambdaSql.QueryBuilder
             return clone;
         }
 
-        public abstract string Build(SqlSelectInfo info);
+        public abstract string Build(SqlSelectInfo info, bool parametric);
 
         protected void CheckAsAliases(SqlSelectInfo info)
         {
@@ -63,13 +63,14 @@ namespace LambdaSql.QueryBuilder
         }
 
         protected void AppendFilter(StringBuilder sb, SqlSelectInfo info, string clause,
-            Func<SqlSelectInfo, ISqlFilter> getFilterCallback)
+            Func<SqlSelectInfo, ISqlFilter> getFilterCallback, bool parametric)
         {
             var filter = getFilterCallback(info);
             if (filter != null)
             {
                 sb.Append(SEPARATOR).Append(clause)
-                    .Append(SEPARATOR_WITH_OFFSET).Append(filter.RawSql);
+                    .Append(SEPARATOR_WITH_OFFSET)
+                    .Append(parametric ? filter.ParametricSql : filter.RawSql);
             }
         }
 

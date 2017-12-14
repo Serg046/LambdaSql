@@ -13,7 +13,7 @@ namespace LambdaSql.UnitTests
             var select = new SqlSelect<Person>()
                 .InnerJoin<Person, Passport>((person, passport) => person.Id == passport.PersonId)
                 .AddFields(SqlField<Person>.Count(p => p.Id, "pa"));
-            Assert.Throws<IncorrectAliasException>(() => { var cmd = select.CommandText; });
+            Assert.Throws<IncorrectAliasException>(() => { var cmd = select.ParametricSql; });
         }
 
         [Fact]
@@ -26,7 +26,7 @@ namespace LambdaSql.UnitTests
     *
 FROM
     Person pe";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.ParametricSql);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ FROM
     TOP 5 DISTINCT pe.Id
 FROM
     Person pe";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.ParametricSql);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ FROM
     Person pe
 WHERE
     pe.LastName IS NOT NULL";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.ParametricSql);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ FROM
     Person pe
 GROUP BY
     pe.LastName";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.ParametricSql);
         }
 
         [Fact]
@@ -96,7 +96,7 @@ GROUP BY
     pe.LastName
 HAVING
     COUNT(pe.Id) > 2";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.RawSql);
         }
 
         [Fact]
@@ -115,7 +115,7 @@ WHERE
     pe.LastName IS NOT NULL
 ORDER BY
     pe.Id";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.ParametricSql);
         }
 
         [Fact]
@@ -133,8 +133,8 @@ FROM
     Person pe
 INNER JOIN
     Passport pa ON pe.Id = pa.PersonId";
-            Assert.Equal(expected, joinByLambdaQry.CommandText);
-            Assert.Equal(expected, joinByFilterQry.CommandText);
+            Assert.Equal(expected, joinByLambdaQry.ParametricSql);
+            Assert.Equal(expected, joinByFilterQry.ParametricSql);
         }
 
         [Fact]
@@ -150,7 +150,7 @@ FROM
     Person pe
 INNER JOIN
     Passport pa ON pa.PersonId = pe.Id";
-            Assert.Equal(expected, joinByLambdaQry.CommandText);
+            Assert.Equal(expected, joinByLambdaQry.ParametricSql);
         }
 
         [Fact]
@@ -166,7 +166,7 @@ FROM
     Person pe
 INNER JOIN
     Passport pa ON pe.Id = pa.NullablePersonId";
-            Assert.Equal(expected, joinByLambdaQry.CommandText);
+            Assert.Equal(expected, joinByLambdaQry.ParametricSql);
         }
 
         [Fact]
@@ -198,7 +198,7 @@ HAVING
     COUNT(pe.LastName) > 2
 ORDER BY
     pe.LastName";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.RawSql);
         }
     }
 }

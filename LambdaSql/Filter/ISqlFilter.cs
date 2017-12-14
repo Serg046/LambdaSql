@@ -1,4 +1,4 @@
-﻿using System.Data.SqlClient;
+﻿using System.Data.Common;
 
 namespace LambdaSql.Filter
 {
@@ -6,6 +6,7 @@ namespace LambdaSql.Filter
     {
         string RawSql { get; }
         string ParametricSql { get; }
-        SqlParameter[] Parameters { get; }
+        DbParameter[] Parameters { get; }
+        ISqlFilter WithParameterPrefix(string prefix);
     }
 }

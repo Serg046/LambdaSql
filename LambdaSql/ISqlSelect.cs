@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using System.Linq.Expressions;
 using LambdaSql.Field;
 using LambdaSql.Filter;
@@ -8,10 +9,12 @@ namespace LambdaSql
 {
     public interface ISqlSelect
     {
-        string CommandText { get; }
-        Type EntityType { get; }
-
+        string RawSql { get; }
+        string ParametricSql { get; }
         SqlSelectInfo Info { get; }
+        Type EntityType { get; }
+        DbParameter[] Parameters { get; }
+
 
         ISqlSelect Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback);
         ISqlSelect Distinct(bool isDistinct);

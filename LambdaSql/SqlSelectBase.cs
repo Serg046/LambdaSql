@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using GuardExtensions;
 using LambdaSql.Field;
 using LambdaSql.Filter;
+using LambdaSql.QueryBuilder;
 
 namespace LambdaSql
 {
@@ -15,12 +17,20 @@ namespace LambdaSql
 
         protected readonly IMetadataProvider MetadataProvider = LambdaSql.MetadataProvider.Instance;
 
-        protected SqlSelectBase(SqlSelectInfo info)
+        protected SqlSelectBase(SqlSelectInfo info, ISqlSelectQueryBuilder queryBuilder)
         {
             Info = info;
+            QueryBuilder = queryBuilder;
         }
 
         public SqlSelectInfo Info { get; }
+        protected ISqlSelectQueryBuilder QueryBuilder { get; }
+
+        private string _rawSql;
+        public string RawSql => _rawSql ?? (_rawSql = QueryBuilder.Build(Info, parametric: false));
+
+        private string _parametricSql;
+        public string ParametricSql => _parametricSql ?? (_parametricSql = QueryBuilder.Build(Info, parametric: true));
 
         private ISqlField CreateSqlField<TEntity>(string name, ISqlAlias alias)
         {
@@ -73,5 +83,11 @@ namespace LambdaSql
             var join = new SqlJoin<TJoin>(joinType, condition, joinAlias);
             return Info.Joins(join);
         }
+
+        protected DbParameter[] GetFilterParameters(SqlSelectInfo info)
+            => Info.Where()?.Parameters?
+                   .Concat(Info.Having()?.Parameters ?? new DbParameter[0]).ToArray()
+               ?? Info.Having()?.Parameters
+               ?? new DbParameter[0];
     }
 }

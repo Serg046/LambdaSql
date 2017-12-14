@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using LambdaSql.Field;
 
@@ -15,13 +15,17 @@ namespace LambdaSql.Filter.SqlFilterItem
         }
 
         public abstract string Value { get; }
-        public abstract SqlParameter Parameter { get; }
+        public abstract DbParameter Parameter { get; }
 
         public static SqlFilterParameter Create(SqlFilterConfiguration configuration, ISqlField sqlField)
             => new SqlFieldParameter(configuration, sqlField);
 
         public static SqlFilterParameter Create(SqlFilterConfiguration configuration, object paramValue)
-            => new DbParamParameter(configuration, new SqlParameter { Value = paramValue });
+        {
+            var dbParameter = MetadataProvider.Instance.CreateDbParameter();
+            dbParameter.Value = paramValue;
+            return new DbParamParameter(configuration, dbParameter);
+        }
 
         public override string ToString() => Value;
 
@@ -36,7 +40,7 @@ namespace LambdaSql.Filter.SqlFilterItem
                 _sqlField = sqlField;
             }
 
-            public override SqlParameter Parameter => null;
+            public override DbParameter Parameter => null;
 
             public override string Value
             {
@@ -58,15 +62,15 @@ namespace LambdaSql.Filter.SqlFilterItem
                 DbType.AnsiStringFixedLength, DbType.StringFixedLength
             };
 
-            private readonly SqlParameter _dbParameter;
+            private readonly DbParameter _dbParameter;
 
-            public DbParamParameter(SqlFilterConfiguration configuration, SqlParameter dbParameter)
+            public DbParamParameter(SqlFilterConfiguration configuration, DbParameter dbParameter)
                 : base(configuration)
             {
                 _dbParameter = dbParameter;
             }
 
-            public override SqlParameter Parameter
+            public override DbParameter Parameter
                 => _configuration.WithoutParameters ? null : _dbParameter;
 
             public override string Value

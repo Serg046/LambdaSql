@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using GuardExtensions;
@@ -10,7 +11,6 @@ namespace LambdaSql
 {
     public class SqlSelect : SqlSelectBase, ISqlSelect
     {
-        private readonly ISqlSelectQueryBuilder _queryBuilder;
         private readonly ISqlSelect _innerSqlSelect;
 
         public SqlSelect(ISqlSelect innerSqlSelect, ISqlAlias alias) 
@@ -19,23 +19,23 @@ namespace LambdaSql
         {
         }
 
-        private SqlSelect(ISqlSelect innerSqlSelect, SqlSelectInfo info, ISqlSelectQueryBuilder queryBuilder) : base(info)
+        private SqlSelect(ISqlSelect innerSqlSelect, SqlSelectInfo info, ISqlSelectQueryBuilder queryBuilder) : base(info, queryBuilder)
         {
             Guard.IsNotNull(innerSqlSelect);
             _innerSqlSelect = innerSqlSelect;
-            _queryBuilder = queryBuilder;
         }
 
-        private SqlSelect CreateSqlSelect(SqlSelectInfo info) => new SqlSelect(_innerSqlSelect, info, _queryBuilder);
+        private SqlSelect CreateSqlSelect(SqlSelectInfo info) => new SqlSelect(_innerSqlSelect, info, QueryBuilder);
         
         ISqlSelect ISqlSelect.Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback) => Extend(decorationCallback);
         public SqlSelect Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback)
-            => new SqlSelect(_innerSqlSelect, Info, decorationCallback(_queryBuilder));
+            => new SqlSelect(_innerSqlSelect, Info, decorationCallback(QueryBuilder));
 
-        private string _commandText;
-        public string CommandText => _commandText ?? (_commandText = _queryBuilder.Build(Info));
+        private DbParameter[] _parameters;
+        public DbParameter[] Parameters => _parameters
+            ?? (_parameters = _innerSqlSelect.Parameters.Concat(GetFilterParameters(Info)).ToArray());
 
-        public override string ToString() => CommandText;
+        public override string ToString() => ParametricSql;
 
         public Type EntityType => null;
 
@@ -219,14 +219,14 @@ namespace LambdaSql
         public SqlSelect Where(ISqlFilter filter)
         {
             Guard.IsNotNull(filter);
-            return CreateSqlSelect(Info.Where(filter));
+            return CreateSqlSelect(Info.Where(filter.WithParameterPrefix($"{Info.Alias.Value}_w")));
         }
 
         ISqlSelect ISqlSelect.Having(ISqlFilter filter) => Having(filter);
         public SqlSelect Having(ISqlFilter filter)
         {
             Guard.IsNotNull(filter);
-            return CreateSqlSelect(Info.Having(filter));
+            return CreateSqlSelect(Info.Having(filter.WithParameterPrefix($"{Info.Alias.Value}_h")));
         }
     }
 }

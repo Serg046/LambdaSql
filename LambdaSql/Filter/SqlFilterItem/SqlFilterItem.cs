@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 
 namespace LambdaSql.Filter.SqlFilterItem
@@ -18,6 +18,6 @@ namespace LambdaSql.Filter.SqlFilterItem
 
         public string Expression => string.Format(_expression, _sqlFilterParameters);
 
-        public IEnumerable<SqlParameter> Parameters { get; }
+        public IEnumerable<DbParameter> Parameters { get; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -47,8 +47,8 @@ namespace LambdaSql.Filter
             }
         }
 
-        private SqlParameter[] _parameters;
-        public SqlParameter[] Parameters
+        private DbParameter[] _parameters;
+        public DbParameter[] Parameters
         {
             get
             {
@@ -78,7 +78,7 @@ namespace LambdaSql.Filter
             };
 
             var filterSb = new StringBuilder();
-            var parameters = new List<SqlParameter>();
+            var parameters = new List<DbParameter>();
             var counter = 0;
             foreach (var itemFunc in FilterItems)
             {
@@ -122,5 +122,12 @@ namespace LambdaSql.Filter
 
         internal ImmutableList<SqlFilterItemCallback> AddItem(SqlFilterItemCallback item)
             => FilterItems.Count == 0 ? FilterItems : FilterItems.Add(item);
+
+        ISqlFilter ISqlFilter.WithParameterPrefix(string prefix)
+        {
+            var filter = (SqlFilterBase)MemberwiseClone();
+            filter.ParamPrefix = prefix;
+            return filter;
+        }
     }
 }

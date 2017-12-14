@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using System.Linq.Expressions;
 using GuardExtensions;
 using LambdaSql.Field;
@@ -9,28 +10,25 @@ namespace LambdaSql
 {
     public class SqlSelect<T> : SqlSelectBase, ISqlSelect
     {
-        private readonly ISqlSelectQueryBuilder _queryBuilder;
-
         public SqlSelect() : this(new SqlSelectInfo(LambdaSql.MetadataProvider.Instance.AliasFor<T>()),
             new SqlSelectQueryBuilder(LambdaSql.MetadataProvider.Instance.GetTableName<T>()))
         {
         }
 
-        private SqlSelect(SqlSelectInfo info, ISqlSelectQueryBuilder queryBuilder) : base(info)
+        private SqlSelect(SqlSelectInfo info, ISqlSelectQueryBuilder queryBuilder) : base(info, queryBuilder)
         {
-            _queryBuilder = queryBuilder;
         }
 
-        private SqlSelect<T> CreateSqlSelect(SqlSelectInfo info) => new SqlSelect<T>(info, _queryBuilder);
+        private SqlSelect<T> CreateSqlSelect(SqlSelectInfo info) => new SqlSelect<T>(info, QueryBuilder);
 
         ISqlSelect ISqlSelect.Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback) => Extend(decorationCallback);
         public SqlSelect<T> Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback)
-            => new SqlSelect<T>(Info, decorationCallback(_queryBuilder));
+            => new SqlSelect<T>(Info, decorationCallback(QueryBuilder));
 
-        private string _commandText;
-        public string CommandText => _commandText ?? (_commandText = _queryBuilder.Build(Info));
+        private DbParameter[] _parameters;
+        public DbParameter[] Parameters => _parameters ?? (_parameters = GetFilterParameters(Info));
 
-        public override string ToString() => CommandText;
+        public override string ToString() => ParametricSql;
 
         public Type EntityType => typeof(T);
 
@@ -258,13 +256,13 @@ namespace LambdaSql
         ISqlSelect ISqlSelect.Where(ISqlFilter filter) => Where(filter);
         public SqlSelect<T> Where(ISqlFilter filter)
         {
-            return CreateSqlSelect(Info.Where(filter));
+            return CreateSqlSelect(Info.Where(filter.WithParameterPrefix("w")));
         }
 
         ISqlSelect ISqlSelect.Having(ISqlFilter filter) => Having(filter);
         public SqlSelect<T> Having(ISqlFilter filter)
         {
-            return CreateSqlSelect(Info.Having(filter));
+            return CreateSqlSelect(Info.Having(filter.WithParameterPrefix("h")));
         }
     }
 }

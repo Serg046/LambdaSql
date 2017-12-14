@@ -20,7 +20,7 @@ FROM
     FROM
         Person pe
 ) AS p";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.ParametricSql);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ FROM
             Person pe
     ) AS p0
 ) AS p1";
-            Assert.Equal(expected, select.CommandText);
+            Assert.Equal(expected, select.ParametricSql);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ FROM
                 .AddFields(p => p.LastName);
             var incorrectQry = new SqlSelect(innerQry, new SqlAlias("p"))
                 .AddFields<Person>(p => p.Name);
-            Assert.Throws<InvalidOperationException>(() => { var cmd = incorrectQry.CommandText; });
+            Assert.Throws<InvalidOperationException>(() => { var cmd = incorrectQry.ParametricSql; });
 
             var correctQry = new SqlSelect(innerQry, new SqlAlias("p"))
                 .AddFields<Person>(p => p.LastName);
@@ -66,7 +66,7 @@ FROM
     FROM
         Person pe
 ) AS p";
-            Assert.Equal(expected, correctQry.CommandText);
+            Assert.Equal(expected, correctQry.ParametricSql);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ FROM
                 ).AddFields<Person>(p => p.LastName);
             var incorrectQry = new SqlSelect(innerQry, new SqlAlias("p1"))
                 .AddFields<Person>(p => p.Name);
-            Assert.Throws<InvalidOperationException>(() => { var cmd = incorrectQry.CommandText; });
+            Assert.Throws<InvalidOperationException>(() => { var cmd = incorrectQry.ParametricSql; });
 
             var correctQry = new SqlSelect(innerQry, new SqlAlias("p1"))
                 .AddFields<Person>(p => p.LastName);
@@ -99,7 +99,7 @@ FROM
             Person pe
     ) AS p0
 ) AS p1";
-            Assert.Equal(expected, correctQry.CommandText);
+            Assert.Equal(expected, correctQry.ParametricSql);
         }
     }
 }

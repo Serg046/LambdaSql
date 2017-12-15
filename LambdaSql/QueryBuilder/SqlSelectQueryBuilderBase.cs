@@ -8,7 +8,7 @@ using LambdaSql.Filter;
 
 namespace LambdaSql.QueryBuilder
 {
-    public delegate string ModifySelectFieldsCallback(string selectFields);
+    public delegate string ModifyQueryPartCallback(string selectFields);
 
     internal abstract class SqlSelectQueryBuilderBase : ISqlSelectQueryBuilder
     {
@@ -25,11 +25,51 @@ namespace LambdaSql.QueryBuilder
             return (SqlSelectQueryBuilderBase)MemberwiseClone();
         }
 
-        private ImmutableList<ModifySelectFieldsCallback> _selectFieldsModificators = ImmutableList<ModifySelectFieldsCallback>.Empty;
-        public ISqlSelectQueryBuilder ModifySelectFields(ModifySelectFieldsCallback modificationCallback)
+        private ImmutableList<ModifyQueryPartCallback> _selectFieldsModificators = ImmutableList<ModifyQueryPartCallback>.Empty;
+        public ISqlSelectQueryBuilder ModifySelectFields(ModifyQueryPartCallback modificationCallback)
         {
             var clone = Clone();
             clone._selectFieldsModificators = clone._selectFieldsModificators.Add(modificationCallback);
+            return clone;
+        }
+
+        private ImmutableList<ModifyQueryPartCallback> _groupByFieldsModificators = ImmutableList<ModifyQueryPartCallback>.Empty;
+        public ISqlSelectQueryBuilder ModifyGroupByFields(ModifyQueryPartCallback modificationCallback)
+        {
+            var clone = Clone();
+            clone._groupByFieldsModificators = clone._groupByFieldsModificators.Add(modificationCallback);
+            return clone;
+        }
+
+        private ImmutableList<ModifyQueryPartCallback> _orderByFieldsModificators = ImmutableList<ModifyQueryPartCallback>.Empty;
+        public ISqlSelectQueryBuilder ModifyOrderByFields(ModifyQueryPartCallback modificationCallback)
+        {
+            var clone = Clone();
+            clone._orderByFieldsModificators = clone._orderByFieldsModificators.Add(modificationCallback);
+            return clone;
+        }
+
+        private ImmutableList<ModifyQueryPartCallback> _joinModificators = ImmutableList<ModifyQueryPartCallback>.Empty;
+        public ISqlSelectQueryBuilder ModifyJoins(ModifyQueryPartCallback modificationCallback)
+        {
+            var clone = Clone();
+            clone._joinModificators = clone._joinModificators.Add(modificationCallback);
+            return clone;
+        }
+
+        private ImmutableList<ModifyQueryPartCallback> _whereModificators = ImmutableList<ModifyQueryPartCallback>.Empty;
+        public ISqlSelectQueryBuilder ModifyWhereFilters(ModifyQueryPartCallback modificationCallback)
+        {
+            var clone = Clone();
+            clone._whereModificators = clone._whereModificators.Add(modificationCallback);
+            return clone;
+        }
+
+        private ImmutableList<ModifyQueryPartCallback> _havingModificators = ImmutableList<ModifyQueryPartCallback>.Empty;
+        public ISqlSelectQueryBuilder ModifyHavingFilters(ModifyQueryPartCallback modificationCallback)
+        {
+            var clone = Clone();
+            clone._havingModificators = clone._havingModificators.Add(modificationCallback);
             return clone;
         }
 
@@ -55,34 +95,57 @@ namespace LambdaSql.QueryBuilder
 
         protected void AppendJoins(StringBuilder sb, SqlSelectInfo info)
         {
-            var joins = info.Joins();
-            if (joins.Count > 0)
+            if (info.Joins().Count > 0)
             {
-                sb.Append(SEPARATOR).Append(string.Join(SEPARATOR, joins));
+                var joins = _joinModificators.Aggregate(string.Join(SEPARATOR, info.Joins()),
+                    (result, callback) => callback(result));
+                sb.Append(SEPARATOR).Append(joins);
             }
         }
 
-        protected void AppendFilter(StringBuilder sb, SqlSelectInfo info, string clause,
-            Func<SqlSelectInfo, ISqlFilter> getFilterCallback, bool parametric)
+        private void AppendFilter(StringBuilder sb, string clause, ISqlFilter filter, bool parametric,
+            IEnumerable<ModifyQueryPartCallback> modificators)
         {
-            var filter = getFilterCallback(info);
             if (filter != null)
             {
+                var sql = parametric ? filter.ParametricSql : filter.RawSql;
                 sb.Append(SEPARATOR).Append(clause)
                     .Append(SEPARATOR_WITH_OFFSET)
-                    .Append(parametric ? filter.ParametricSql : filter.RawSql);
+                    .Append(modificators.Aggregate(sql, (result, callback) => callback(result)));
             }
         }
 
-        protected void AppendFields(StringBuilder sb, SqlSelectInfo info, string clause,
-            Func<SqlSelectInfo, ICollection<ISqlField>> getFieldsCallback)
+        protected void AppendWhere(StringBuilder sb, SqlSelectInfo info, bool parametric)
         {
-            var fields = getFieldsCallback(info);
+            AppendFilter(sb, "WHERE", info.Where(), parametric, _whereModificators);
+        }
+
+        protected void AppendHaving(StringBuilder sb, SqlSelectInfo info, bool parametric)
+        {
+            AppendFilter(sb, "HAVING", info.Having(), parametric, _havingModificators);
+        }
+
+        private void AppendFields(StringBuilder sb, string clause, ICollection<ISqlField> fields,
+            IEnumerable<ModifyQueryPartCallback> modificators)
+        {
             if (fields.Count > 0)
             {
-                sb.Append(SEPARATOR).Append(clause)
-                    .Append(SEPARATOR_WITH_OFFSET).Append(string.Join(", ", fields.Select(f => f.ShortView)));
+                var joinedFields = string.Join(", ", fields.Select(f => f.ShortView));
+                sb.Append(SEPARATOR)
+                    .Append(clause)
+                    .Append(SEPARATOR_WITH_OFFSET)
+                    .Append(modificators.Aggregate(joinedFields, (result, callback) => callback(result)));
             }
+        }
+
+        protected void AppendGroupByFields(StringBuilder sb, SqlSelectInfo info)
+        {
+            AppendFields(sb, "GROUP BY", info.GroupByFields(), _groupByFieldsModificators);
+        }
+
+        protected void AppendOrderByFields(StringBuilder sb, SqlSelectInfo info)
+        {
+            AppendFields(sb, "ORDER BY", info.OrderByFields(), _orderByFieldsModificators);
         }
     }
 }

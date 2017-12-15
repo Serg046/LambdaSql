@@ -26,10 +26,10 @@ namespace LambdaSql.QueryBuilder
                 .Append(innerSql.Replace(SEPARATOR, SEPARATOR_WITH_OFFSET))
                 .Append(SEPARATOR).Append(") AS ").Append(info.Alias.Value);
             AppendJoins(sb, info);
-            AppendFilter(sb, info, "WHERE", sInfo => sInfo.Where(), parametric);
-            AppendFields(sb, info, "GROUP BY", sInfo => sInfo.GroupByFields());
-            AppendFilter(sb, info, "HAVING", sInfo => sInfo.Having(), parametric);
-            AppendFields(sb, info, "ORDER BY", sInfo => sInfo.OrderByFields());
+            AppendWhere(sb, info, parametric);
+            AppendGroupByFields(sb, info);
+            AppendHaving(sb, info, parametric);
+            AppendOrderByFields(sb, info);
             return sb.ToString();
         }
 

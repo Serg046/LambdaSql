@@ -49,7 +49,7 @@ namespace LambdaSql.Filter.SqlFilterItem
                     var field = _sqlField.Clone();
                     if (_configuration.WithoutAliases)
                         field.Alias = null;
-                    return field.ShortView;
+                    return field.ShortString;
                 }
             }
         }

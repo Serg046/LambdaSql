@@ -25,7 +25,7 @@ namespace LambdaSql.QueryBuilder
             AppendGroupByFields(sb, info);
             AppendHaving(sb, info, parametric);
             AppendOrderByFields(sb, info);
-            return sb.ToString();
+            return GetQueryString(sb);
         }
     }
 }

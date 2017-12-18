@@ -8,7 +8,7 @@ using LambdaSql.Filter;
 
 namespace LambdaSql.QueryBuilder
 {
-    public delegate string ModifyQueryPartCallback(string selectFields);
+    public delegate string ModifyQueryPartCallback(string query);
 
     internal abstract class SqlSelectQueryBuilderBase : ISqlSelectQueryBuilder
     {
@@ -73,6 +73,14 @@ namespace LambdaSql.QueryBuilder
             return clone;
         }
 
+        private ImmutableList<ModifyQueryPartCallback> _wholeQueryModificators = ImmutableList<ModifyQueryPartCallback>.Empty;
+        public ISqlSelectQueryBuilder Modify(ModifyQueryPartCallback modificationCallback)
+        {
+            var clone = Clone();
+            clone._wholeQueryModificators = clone._wholeQueryModificators.Add(modificationCallback);
+            return clone;
+        }
+
         public abstract string Build(SqlSelectInfo info, bool parametric);
 
         protected void CheckAsAliases(SqlSelectInfo info)
@@ -93,59 +101,66 @@ namespace LambdaSql.QueryBuilder
             return _selectFieldsModificators.Aggregate(fields, (result, callback) => callback(result));
         }
 
-        protected void AppendJoins(StringBuilder sb, SqlSelectInfo info)
+        protected void AppendJoins(StringBuilder querySb, SqlSelectInfo info)
         {
             if (info.Joins().Count > 0)
             {
                 var joins = _joinModificators.Aggregate(string.Join(SEPARATOR, info.Joins()),
                     (result, callback) => callback(result));
-                sb.Append(SEPARATOR).Append(joins);
+                querySb.Append(SEPARATOR).Append(joins);
             }
         }
 
-        private void AppendFilter(StringBuilder sb, string clause, ISqlFilter filter, bool parametric,
-            IEnumerable<ModifyQueryPartCallback> modificators)
+        private void AppendFilter(StringBuilder querySb, string clause, ISqlFilter filter, bool parametric,
+            IReadOnlyList<ModifyQueryPartCallback> modificators)
         {
             if (filter != null)
             {
                 var sql = parametric ? filter.ParametricSql : filter.RawSql;
-                sb.Append(SEPARATOR).Append(clause)
+                querySb.Append(SEPARATOR).Append(clause)
                     .Append(SEPARATOR_WITH_OFFSET)
                     .Append(modificators.Aggregate(sql, (result, callback) => callback(result)));
             }
+            else if (modificators.Count > 0)
+            {
+                querySb.Append(modificators.Aggregate(string.Empty, (result, callback) => callback(result)));
+            }
         }
 
-        protected void AppendWhere(StringBuilder sb, SqlSelectInfo info, bool parametric)
+        protected void AppendWhere(StringBuilder querySb, SqlSelectInfo info, bool parametric)
         {
-            AppendFilter(sb, "WHERE", info.Where(), parametric, _whereModificators);
+            AppendFilter(querySb, "WHERE", info.Where(), parametric, _whereModificators);
         }
 
-        protected void AppendHaving(StringBuilder sb, SqlSelectInfo info, bool parametric)
+        protected void AppendHaving(StringBuilder querySb, SqlSelectInfo info, bool parametric)
         {
-            AppendFilter(sb, "HAVING", info.Having(), parametric, _havingModificators);
+            AppendFilter(querySb, "HAVING", info.Having(), parametric, _havingModificators);
         }
 
-        private void AppendFields(StringBuilder sb, string clause, ICollection<ISqlField> fields,
+        private void AppendFields(StringBuilder querySb, string clause, ICollection<ISqlField> fields,
             IEnumerable<ModifyQueryPartCallback> modificators)
         {
             if (fields.Count > 0)
             {
-                var joinedFields = string.Join(", ", fields.Select(f => f.ShortView));
-                sb.Append(SEPARATOR)
+                var joinedFields = string.Join(", ", fields.Select(f => f.ShortString));
+                querySb.Append(SEPARATOR)
                     .Append(clause)
                     .Append(SEPARATOR_WITH_OFFSET)
                     .Append(modificators.Aggregate(joinedFields, (result, callback) => callback(result)));
             }
         }
 
-        protected void AppendGroupByFields(StringBuilder sb, SqlSelectInfo info)
+        protected void AppendGroupByFields(StringBuilder querySb, SqlSelectInfo info)
         {
-            AppendFields(sb, "GROUP BY", info.GroupByFields(), _groupByFieldsModificators);
+            AppendFields(querySb, "GROUP BY", info.GroupByFields(), _groupByFieldsModificators);
         }
 
-        protected void AppendOrderByFields(StringBuilder sb, SqlSelectInfo info)
+        protected void AppendOrderByFields(StringBuilder querySb, SqlSelectInfo info)
         {
-            AppendFields(sb, "ORDER BY", info.OrderByFields(), _orderByFieldsModificators);
+            AppendFields(querySb, "ORDER BY", info.OrderByFields(), _orderByFieldsModificators);
         }
+
+        protected string GetQueryString(StringBuilder querySb)
+            => _wholeQueryModificators.Aggregate(querySb.ToString(), (result, callback) => callback(result));
     }
 }

@@ -28,7 +28,7 @@ namespace LambdaSql
         private DbParameter[] _parameters;
         public DbParameter[] Parameters => _parameters ?? (_parameters = GetFilterParameters(Info));
 
-        public override string ToString() => ParametricSql;
+        public override string ToString() => RawSql;
 
         public Type EntityType => typeof(T);
 

@@ -8,8 +8,8 @@ namespace LambdaSql.Field
         Type EntityType { get; }
         string Name { get; }
         string AsAlias { get; set; }
-        string ShortView { get; }
-        string View { get; }
+        string ShortString { get; }
+        string String { get; }
         AggregateFunc? Aggregation { get; }
         ISqlField Clone();
     }

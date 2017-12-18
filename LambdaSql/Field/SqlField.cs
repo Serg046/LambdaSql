@@ -18,20 +18,20 @@ namespace LambdaSql.Field
         public string AsAlias { get; set; }
         public AggregateFunc? Aggregation { get; internal set; }
 
-        public string ShortView => GetShortViewBuilder().ToString();
+        public string ShortString => GetShortStringBuilder().ToString();
 
-        public string View
+        public string String
         {
             get
             {
-                var sb = GetShortViewBuilder();
+                var sb = GetShortStringBuilder();
                 if (AsAlias != null)
                     sb.Append(" AS ").Append(AsAlias);
                 return sb.ToString();
             }
         }
 
-        private StringBuilder GetShortViewBuilder()
+        private StringBuilder GetShortStringBuilder()
         {
             var sb = Alias != null && Alias.Value.IsNotEmpty()
                 ? new StringBuilder(Alias.Value + "." + Name)
@@ -41,7 +41,7 @@ namespace LambdaSql.Field
             return sb;
         }
 
-        public override string ToString() => View;
+        public override string ToString() => String;
 
         public ISqlField Clone() => (ISqlField)MemberwiseClone();
 

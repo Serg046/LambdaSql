@@ -35,7 +35,7 @@ namespace LambdaSql
         public DbParameter[] Parameters => _parameters
             ?? (_parameters = _innerSqlSelect.Parameters.Concat(GetFilterParameters(Info)).ToArray());
 
-        public override string ToString() => ParametricSql;
+        public override string ToString() => RawSql;
 
         public Type EntityType => null;
 

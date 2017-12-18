@@ -12,5 +12,6 @@ namespace LambdaSql.QueryBuilder
         ISqlSelectQueryBuilder ModifyGroupByFields(ModifyQueryPartCallback modificationCallback);
         ISqlSelectQueryBuilder ModifyHavingFilters(ModifyQueryPartCallback modificationCallback);
         ISqlSelectQueryBuilder ModifyOrderByFields(ModifyQueryPartCallback modificationCallback);
+        ISqlSelectQueryBuilder Modify(ModifyQueryPartCallback modificationCallback);
     }
 }

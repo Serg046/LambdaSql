@@ -7,11 +7,13 @@ The main two types are SqlSelect and SqlFilter.
 SqlSelect contains logic to create `select` sql query and SqlFilter is used for some filter like `where` or `having` clauses.
 All features are **immutable**.
 
-#### SqlSelect contract
+- SqlSelect contract
 ```csharp
 SqlSelect<T> Extend(Func<ISqlSelectQueryBuilder, ISqlSelectQueryBuilder> decorationCallback);
 Type EntityType { get; }  
-string CommandText { get; }  
+string RawSql { get; }  
+string ParametricSql { get; }  
+DbParameter[] Parameters { get; }  
 SqlSelect<T> Distinct();  
 SqlSelect<T> AddFields(params Expression<Func<T, object>>[] fields);  
 SqlSelect<T> GroupBy(params Expression<Func<T, object>>[] fields);  
@@ -23,7 +25,7 @@ SqlSelect<T> FullJoin<TLeft, TJoin>(...);
 SqlSelect<T> Where(ISqlFilter filter);  
 SqlSelect<T> Having(ISqlFilter filter);  
 ```
-#### SqlFilter contract
+- SqlFilter contract
 ```csharp
 string RawSql { get; }  
 SqlParameter[] Parameters { get; }  
@@ -35,7 +37,7 @@ SqlFilter<TEntity> Or(SqlFilter<TEntity> filter);
 SqlFilter<TEntity> AndGroup(SqlFilter<TEntity> filter);  
 SqlFilter<TEntity> OrGroup(SqlFilter<TEntity> filter);  
 ```
-#### SqlFilterField contract
+- SqlFilterField contract
 ```csharp
 TResult SatisfyLambda(Func<ISqlField, string> filter);  
 TResult IsNull();  
@@ -58,7 +60,7 @@ TResult NotIn(params TFieldType[] values);
 ```
 
 ## Usage
-#### Entity types
+- Entity types
 ```csharp
 public class Person
 {
@@ -73,18 +75,18 @@ public class Passport
     public string Number { get; }
 }
 ```
-#### Simple query
+- Simple query
 ```csharp
 var qry = new SqlSelect<Person>()
     .AddFields(p => p.Id)
     .Where(SqlFilter<Person>.From(p => p.Name).EqualTo("Sergey"));
     
-Console.WriteLine(qry.CommandText);
+Console.WriteLine(qry.ParametricSql);
 Console.WriteLine("---");
 Console.WriteLine(string.Join("; ", qry.Parameters
     .Select(p => $"Name = {p.ParameterName}, Value = {p.Value}")));
 ```
-```
+```sql
 SELECT
     pe.Id
 FROM
@@ -94,7 +96,7 @@ WHERE
 ---
 Name = @w0, Value = Sergey
 ```
-#### Group by and having clauses
+- Group by and having clauses
 ```csharp
 var qry = new SqlSelect<Person>()
     .AddFields(p => p.Name)
@@ -103,12 +105,12 @@ var qry = new SqlSelect<Person>()
     .GroupBy(p => p.Name)
     .Having(SqlFilter<Person>.From(p => p.Name).EqualTo("Sergey"));
 
-Console.WriteLine(qry.CommandText);
+Console.WriteLine(qry.ParametricSql);
 Console.WriteLine("---");
 Console.WriteLine(string.Join("; ", qry.Parameters
     .Select(p => $"Name = {p.ParameterName}, Value = {p.Value}")));
 ```
-```
+```sql
 SELECT
     pe.Name, COUNT(pe.Name)
 FROM
@@ -122,7 +124,7 @@ HAVING
 ---
 Name = @w0, Value = 5; Name = @h0, Value = Sergey
 ```
-#### Nested query
+- Nested query
 ```csharp
 var qry = new SqlSelect
 (
@@ -132,12 +134,12 @@ var qry = new SqlSelect
     , new SqlAlias("inner")
 ).AddFields<Person>(p => p.Name);
 
-Console.WriteLine(qry.CommandText);
+Console.WriteLine(qry.ParametricSql);
 Console.WriteLine("---");
 Console.WriteLine(string.Join("; ", qry.Parameters
     .Select(p => $"Name = {p.ParameterName}, Value = {p.Value}")));
 ```
-```
+```sql
 SELECT
     inner.Name
 FROM
@@ -152,18 +154,18 @@ FROM
 ---
 Name = @w0, Value = Sergey
 ```
-#### Inner join
+- Inner join
 ```csharp
 var joinByLambda = new SqlSelect<Person>()
     .InnerJoin<Person, Passport>((person, passport) => person.PassportId == passport.Id);
 var joinByFilter = new SqlSelect<Person>()
     .InnerJoin<Passport>(SqlFilter<Passport>.From(p => p.Id).EqualTo<Person>(p => p.PassportId));
 
-Console.WriteLine(joinByLambda.CommandText);
+Console.WriteLine(joinByLambda.ParametricSql);
 Console.WriteLine("---");
-Console.WriteLine(joinByFilter.CommandText);
+Console.WriteLine(joinByFilter.ParametricSql);
 ```
-```
+```sql
 SELECT
     *
 FROM
@@ -177,4 +179,89 @@ FROM
     Person pe
 INNER JOIN
     Passport pa ON pa.Id = pe.PassportId
+```
+## Extensibility
+- SqlSelectQueryBuilder contract
+```csharp
+ISqlSelectQueryBuilder ModifySelectFields(ModifyQueryPartCallback modificationCallback);
+ISqlSelectQueryBuilder ModifyJoins(ModifyQueryPartCallback modificationCallback);
+ISqlSelectQueryBuilder ModifyWhereFilters(ModifyQueryPartCallback modificationCallback);
+ISqlSelectQueryBuilder ModifyGroupByFields(ModifyQueryPartCallback modificationCallback);
+ISqlSelectQueryBuilder ModifyHavingFilters(ModifyQueryPartCallback modificationCallback);
+ISqlSelectQueryBuilder ModifyOrderByFields(ModifyQueryPartCallback modificationCallback);
+ISqlSelectQueryBuilder Modify(ModifyQueryPartCallback modificationCallback); //To modify the whole query
+```
+- MySql Limit
+```csharp
+public static ISqlSelect Limit(this ISqlSelect select, int count, int? offset = null)
+{
+    if (count <= 0)
+    {
+        throw new ArgumentException("Parameter \"count\" must be a possitive number");
+    }
+    if (offset.HasValue && offset <= 0)
+    {
+        throw new ArgumentException("Parameter \"offset\" must be a possitive number");
+    }
+    return offset == null
+        ? select.Extend(queryBuilder => queryBuilder.Modify(query => $"{query}{Environment.NewLine}LIMIT {count}"))
+        : select.Extend(queryBuilder => queryBuilder.Modify(query => $"{query}{Environment.NewLine}LIMIT {count} OFFSET {offset}"));
+}
+
+static void Main(string[] args)
+{
+    Console.WriteLine(new SqlSelect<Person>().Limit(10).RawSql);
+    Console.WriteLine();
+    Console.WriteLine(new SqlSelect<Person>().Limit(10, 5).RawSql);
+}
+```
+```sql
+SELECT
+    *
+FROM
+    Person pe
+LIMIT 10
+
+SELECT
+    *
+FROM
+    Person pe
+LIMIT 10 OFFSET 5
+```
+- Oracle ROWNUM
+```csharp
+public static ISqlSelect Top(this ISqlSelect select, int count)
+{
+    if (count <= 0)
+    {
+        throw new ArgumentException("Parameter \"count\" must be a possitive number");
+    }
+    return select.Extend(queryBuilder => queryBuilder.ModifyWhereFilters(where => where.Length == 0
+        ? $"{Environment.NewLine}WHERE{Environment.NewLine}    ROWNUM <= {count}"
+        : $"{where} AND ROWNUM <= {count}"));
+}
+
+static void Main(string[] args)
+{
+    Console.WriteLine(new SqlSelect<Person>().Top(10).RawSql);
+    Console.WriteLine();
+    Console.WriteLine(new SqlSelect<Person>()
+        .Where(SqlFilter<Person>.From(person => person.Name).EqualTo("Sergey"))
+        .Top(10).RawSql);
+}
+```
+```sql
+SELECT
+    *
+FROM
+    Person pe
+WHERE
+    ROWNUM <= 10
+
+SELECT
+    *
+FROM
+    Person pe
+WHERE
+    pe.Name = 'Sergey' AND ROWNUM <= 10
 ```

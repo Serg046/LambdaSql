@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>LambdaSql</id>
+    <version>$version$</version>
+    <title>LambdaSql</title>
+    <authors>Serg046</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Provides possibility to create sql query based on entity type and build query using OOP style. It uses a member lambda expression to get column name and has corresponding methods for each sql clause.</description>
+    <projectUrl>https://github.com/Serg046/LambdaSql</projectUrl>
+    <dependencies>
+      <dependency id="GuardExtensions" version="1.1.2"/>
+      <dependency id="ReadOnlyCollectionInterfaces" version="1.0"/>
+      <dependency id="System.Collections.Immutable.Net40" version="1.0.30.17"/>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\$Configuration$\LambdaSql.dll" target="lib" />
+    <file src="bin\$Configuration$\LambdaSql.pdb" target="lib" />
+  </files>
+</package>

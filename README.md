@@ -1,4 +1,7 @@
 # LambdaSql
+
+[![Build status](https://ci.appveyor.com/api/projects/status/owvt12r5l2vs4hfs?svg=true)](https://ci.appveyor.com/project/Serg046/aopinpc) [![NuGet version](https://badge.fury.io/nu/LambdaSql.svg)](https://badge.fury.io/nu/LambdaSql)
+
 Provides possibility to create sql query based on entity type and build query using OOP style.
 It uses a member lambda expression to get column name and has corresponding methods for each sql clause.
 

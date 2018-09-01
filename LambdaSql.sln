@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaSql", "LambdaSql\Lamb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaSql.UnitTests", "LambdaSql.UnitTests\LambdaSql.UnitTests.csproj", "{D0A04172-7C51-487E-93F8-D640A4FAFE1C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaSql.Analyzers", "LambdaSql.Analyzers\LambdaSql.Analyzers.csproj", "{FDA275CB-C3DE-4B68-BF23-72E3E7A73DBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaSql.Analyzers.Test", "LambdaSql.Analyzers.Tests\LambdaSql.Analyzers.Tests.csproj", "{565E194E-A3E1-4F1B-AFD5-E647B13875A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +25,23 @@ Global
 		{D0A04172-7C51-487E-93F8-D640A4FAFE1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0A04172-7C51-487E-93F8-D640A4FAFE1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0A04172-7C51-487E-93F8-D640A4FAFE1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDA275CB-C3DE-4B68-BF23-72E3E7A73DBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDA275CB-C3DE-4B68-BF23-72E3E7A73DBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDA275CB-C3DE-4B68-BF23-72E3E7A73DBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDA275CB-C3DE-4B68-BF23-72E3E7A73DBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{565E194E-A3E1-4F1B-AFD5-E647B13875A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{565E194E-A3E1-4F1B-AFD5-E647B13875A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{565E194E-A3E1-4F1B-AFD5-E647B13875A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{565E194E-A3E1-4F1B-AFD5-E647B13875A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{831D2CA8-6D8E-4C1E-A095-13CB312D46B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{831D2CA8-6D8E-4C1E-A095-13CB312D46B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{831D2CA8-6D8E-4C1E-A095-13CB312D46B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{831D2CA8-6D8E-4C1E-A095-13CB312D46B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CF36A01D-EEF3-47D1-8636-F530661F6A32}
 	EndGlobalSection
 EndGlobal

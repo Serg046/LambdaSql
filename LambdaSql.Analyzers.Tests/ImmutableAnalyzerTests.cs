@@ -29,7 +29,7 @@ namespace LambdaSql.Analyzers.Tests
                 Id = "LSql1000",
                 Message = String.Format(ImmutableAnalyzer.MESSAGE_FORMAT, type, method),
                 Severity = DiagnosticSeverity.Error,
-                Locations = new[] {new DiagnosticResultLocation(null, 0, 0)}
+                Locations = new[] {new DiagnosticResultLocation("Test0.cs", 8, 13)}
             };
             VerifyCSharpDiagnostic(test, expected);
         }

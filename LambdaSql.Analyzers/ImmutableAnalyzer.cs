@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,7 +35,7 @@ namespace LambdaSql.Analyzers
             var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol;
             if (symbolInfo != null && ReferenceEquals(symbolInfo.ContainingAssembly, lambdaSqlAssembly) && invocation.Parent.IsKind(SyntaxKind.ExpressionStatement))
             {
-                var diagnostic = Diagnostic.Create(_rule, symbolInfo.Locations.Single(),
+                var diagnostic = Diagnostic.Create(_rule, invocation.GetLocation(),
                     symbolInfo.ContainingType.ToString(), symbolInfo.Name);
                 context.ReportDiagnostic(diagnostic);
             }

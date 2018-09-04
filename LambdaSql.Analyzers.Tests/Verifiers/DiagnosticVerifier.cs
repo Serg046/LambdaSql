@@ -232,7 +232,7 @@ namespace LambdaSql.Analyzers.Tests.Verifiers
                     if (rule != null && rule.Id == diagnostics[i].Id)
                     {
                         var location = diagnostics[i].Location;
-                        if (location == Location.None || location.IsInMetadata)
+                        if (location == Location.None)
                         {
                             builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, rule.Id);
                         }

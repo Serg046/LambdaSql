@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using GuardExtensions;
 
@@ -23,7 +22,6 @@ namespace LambdaSql
 
         public SqlAlias<TEntity> For<TEntity>()
         {
-            Contract.Ensures(Contract.Result<SqlAlias<TEntity>>() != null);
             lock (_syncObject)
             {
                 return TryGetAlias<TEntity>() ?? InitAlias<TEntity>();
@@ -40,7 +38,6 @@ namespace LambdaSql
 
         private SqlAlias<TEntity> InitAlias<TEntity>()
         {
-            Contract.Ensures(Contract.Result<SqlAlias<TEntity>>() != null);
             var entityType = typeof (TEntity);
             var alias = new SqlAlias<TEntity>(GenerateAliasName(entityType));
             _aliases.Add(entityType, alias);
@@ -49,8 +46,6 @@ namespace LambdaSql
 
         private string GenerateAliasName(Type entityType)
         {
-            Contract.Ensures(Contract.Result<string>().IsNotEmpty());
-            Contract.Assume(MetadataProvider.Instance != null);
             Guard.IsNotNull(entityType);
 
             var alias = MetadataProvider.Instance.GetTableName(entityType);

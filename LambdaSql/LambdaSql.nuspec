@@ -8,6 +8,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Provides possibility to create sql query based on entity type and build query using OOP style. It uses a member lambda expression to get column name and has corresponding methods for each sql clause.</description>
     <projectUrl>https://github.com/Serg046/LambdaSql</projectUrl>
+    <tags>LambdaSql SQL ORM CRUD QueryObject Query Dapper SqlFilter SQLGeneration</tags>
     <dependencies>
       <dependency id="ReadOnlyCollectionInterfaces" version="1.0"/>
       <dependency id="System.Collections.Immutable.Net40" version="1.0.30.17"/>

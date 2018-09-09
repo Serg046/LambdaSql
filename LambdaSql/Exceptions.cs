@@ -1,5 +1,4 @@
 ﻿using System;
-using GuardExtensions;
 
 namespace LambdaSql
 {
@@ -7,7 +6,6 @@ namespace LambdaSql
     {
         public JoinException(string message) : base(message)
         {
-            Guard.IsNotNull(message);
         }
     }
 
@@ -15,7 +13,6 @@ namespace LambdaSql
     {
         public DuplicateAliasException(string message) : base(message)
         {
-            Guard.IsNotNull(message);
         }
     }
 
@@ -23,7 +20,6 @@ namespace LambdaSql
     {
         public IncorrectAliasException(string message) : base(message)
         {
-            Guard.IsNotNull(message);
         }
     }
 }

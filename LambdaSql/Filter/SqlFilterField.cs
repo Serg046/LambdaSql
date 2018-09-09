@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
-using GuardExtensions;
 using LambdaSql.Field;
 using LambdaSql.Filter.SqlFilterItem;
 
@@ -26,7 +25,7 @@ namespace LambdaSql.Filter
 
         public TResult SatisfyLambda(Func<ISqlField, string> filter)
         {
-            Guard.IsNotNull(filter);
+            if (filter == null) throw new ArgumentNullException(nameof(filter));
             return _sqlFilterBuilder.BuildFilter<TResult>(filter(_sqlField));
         }
 
@@ -40,8 +39,7 @@ namespace LambdaSql.Filter
 
         public TResult Like(string value)
         {
-            Guard.IsNotEmpty(value);
-
+            if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException(nameof(value));
             SqlFilterParameter[] GetParameters(SqlFilterConfiguration config) => new[]
             {
                 SqlFilterParameter.Create(config, _sqlField), SqlFilterParameter.Create(config, value)
@@ -187,17 +185,13 @@ namespace LambdaSql.Filter
 
         public TResult In(params TFieldType[] values)
         {
-            Guard.IsNotNull(values);
-            Guard.IsPositive(values.Length);
+            if (values?.Any() != true) throw new ArgumentException("Sequence contains no elements");
             return _sqlFilterBuilder.ContainsFilter<TResult, TFieldType>("IN", values);
         }
 
         public TResult In(IEnumerable<TFieldType> values)
         {
-            Guard.IsNotNull(values);
-            if (!values.Any())
-                throw new ArgumentException("Collection is empty");
-
+            if (values?.Any() != true) throw new ArgumentException("Sequence contains no elements");
             return _sqlFilterBuilder.ContainsFilter<TResult, TFieldType>("IN", values);
         }
 
@@ -205,17 +199,13 @@ namespace LambdaSql.Filter
 
         public TResult NotIn(params TFieldType[] values)
         {
-            Guard.IsNotNull(values);
-            Guard.IsPositive(values.Length);
+            if (values?.Any() != true) throw new ArgumentException("Sequence contains no elements");
             return _sqlFilterBuilder.ContainsFilter<TResult, TFieldType>("NOT IN", values);
         }
 
         public TResult NotIn(IEnumerable<TFieldType> values)
         {
-            Guard.IsNotNull(values);
-            if (!values.Any())
-                throw new ArgumentException("Collection is empty");
-
+            if (values?.Any() != true) throw new ArgumentException("Sequence contains no elements");
             return _sqlFilterBuilder.ContainsFilter<TResult, TFieldType>("NOT IN", values);
         }
     }

@@ -2,7 +2,6 @@
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
-using GuardExtensions;
 using LambdaSql.Field;
 using LambdaSql.Filter;
 using LambdaSql.QueryBuilder;
@@ -21,8 +20,7 @@ namespace LambdaSql
 
         private SqlSelect(ISqlSelect innerSqlSelect, SqlSelectInfo info, ISqlSelectQueryBuilder queryBuilder) : base(info, queryBuilder)
         {
-            Guard.IsNotNull(innerSqlSelect);
-            _innerSqlSelect = innerSqlSelect;
+            _innerSqlSelect = innerSqlSelect ?? throw new ArgumentNullException(nameof(innerSqlSelect));
         }
 
         private SqlSelect CreateSqlSelect(SqlSelectInfo info) => new SqlSelect(_innerSqlSelect, info, QueryBuilder);
@@ -55,7 +53,7 @@ namespace LambdaSql
         ISqlSelect ISqlSelect.AddFields(ISqlField[] fields) => AddFields(fields);
         public SqlSelect AddFields(params ISqlField[] fields)
         {
-            Guard.IsNotNull(fields);
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
             return CreateSqlSelect(Info.SelectFields(fields.Select(f =>
             {
                 f.Alias = Info.Alias;
@@ -65,7 +63,7 @@ namespace LambdaSql
 
         public SqlSelect AddFields<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
-            Guard.IsNotNull(fields);
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
             return AddFields(CreateSqlFields(Info.Alias, fields));
         }
 
@@ -77,7 +75,7 @@ namespace LambdaSql
         ISqlSelect ISqlSelect.GroupBy(ISqlField[] fields) => GroupBy(fields);
         public SqlSelect GroupBy(params ISqlField[] fields)
         {
-            Guard.IsNotNull(fields);
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
             return CreateSqlSelect(Info.GroupByFields(fields.Select(f =>
             {
                 f.Alias = Info.Alias;
@@ -87,7 +85,7 @@ namespace LambdaSql
 
         public SqlSelect GroupBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
-            Guard.IsNotNull(fields);
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
             return GroupBy(CreateSqlFields(Info.Alias, fields));
         }
 
@@ -99,7 +97,7 @@ namespace LambdaSql
         ISqlSelect ISqlSelect.OrderBy(ISqlField[] fields) => OrderBy(fields);
         public SqlSelect OrderBy(params ISqlField[] fields)
         {
-            Guard.IsNotNull(fields);
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
             return CreateSqlSelect(Info.OrderByFields(fields.Select(f =>
             {
                 f.Alias = Info.Alias;
@@ -109,7 +107,7 @@ namespace LambdaSql
 
         public SqlSelect OrderBy<TEntity>(params Expression<Func<TEntity, object>>[] fields)
         {
-            Guard.IsNotNull(fields);
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
             return OrderBy(CreateSqlFields(Info.Alias, fields));
         }
 
@@ -121,7 +119,7 @@ namespace LambdaSql
         public SqlSelect InnerJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (leftAlias == null)
                 leftAlias = MetadataProvider.AliasFor<TLeft>();
             if (joinAlias == null)
@@ -132,14 +130,14 @@ namespace LambdaSql
 
         public SqlSelect InnerJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             return CreateSqlSelect(Join(JoinType.Inner, condition, joinAlias));
         }
 
         public SqlSelect LeftJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (leftAlias == null)
                 leftAlias = MetadataProvider.AliasFor<TLeft>();
             if (leftAlias == null)
@@ -150,14 +148,14 @@ namespace LambdaSql
 
         public SqlSelect LeftJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             return CreateSqlSelect(Join(JoinType.Left, condition, joinAlias));
         }
 
         public SqlSelect RightJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (leftAlias == null)
                 leftAlias = MetadataProvider.AliasFor<TLeft>();
             if (joinAlias == null)
@@ -168,14 +166,14 @@ namespace LambdaSql
 
         public SqlSelect RightJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             return CreateSqlSelect(Join(JoinType.Right, condition, joinAlias));
         }
 
         public SqlSelect FullJoin<TLeft, TJoin>(Expression<Func<TLeft, TJoin, bool>> condition,
             SqlAlias<TLeft> leftAlias = null, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (leftAlias == null)
                 leftAlias = MetadataProvider.AliasFor<TLeft>();
             if (joinAlias == null)
@@ -186,7 +184,7 @@ namespace LambdaSql
 
         public SqlSelect FullJoin<TJoin>(ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             return CreateSqlSelect(Join(JoinType.Full, condition, joinAlias));
         }
 
@@ -218,14 +216,14 @@ namespace LambdaSql
         ISqlSelect ISqlSelect.Where(ISqlFilter filter) => Where(filter);
         public SqlSelect Where(ISqlFilter filter)
         {
-            Guard.IsNotNull(filter);
+            if (filter == null) throw new ArgumentNullException(nameof(filter));
             return CreateSqlSelect(Info.Where(filter.WithParameterPrefix($"{Info.Alias.Value}_w")));
         }
 
         ISqlSelect ISqlSelect.Having(ISqlFilter filter) => Having(filter);
         public SqlSelect Having(ISqlFilter filter)
         {
-            Guard.IsNotNull(filter);
+            if (filter == null) throw new ArgumentNullException(nameof(filter));
             return CreateSqlSelect(Info.Having(filter.WithParameterPrefix($"{Info.Alias.Value}_h")));
         }
     }

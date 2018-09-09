@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using GuardExtensions;
 using LambdaSql.Field;
 using LambdaSql.Filter.SqlFilterItem;
 
@@ -20,7 +19,6 @@ namespace LambdaSql.Filter
 
         internal SqlFilterBase(ImmutableList<SqlFilterItemCallback> sqlFilterItems)
         {
-            Guard.IsNotNull(sqlFilterItems);
             FilterItems = sqlFilterItems;
         }
 

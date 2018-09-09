@@ -1,5 +1,4 @@
 ﻿using System;
-using GuardExtensions;
 
 namespace LambdaSql
 {
@@ -13,7 +12,7 @@ namespace LambdaSql
     {
         public SqlAlias(string aliasName)
         {
-            Guard.IsNotEmpty(aliasName);
+            if (string.IsNullOrWhiteSpace(aliasName)) throw new ArgumentException(nameof(aliasName));
             Value = aliasName;
         }
 
@@ -44,7 +43,7 @@ namespace LambdaSql
     {
         public SqlAlias(string aliasName)
         {
-            Guard.IsNotEmpty(aliasName);
+            if (string.IsNullOrWhiteSpace(aliasName)) throw new ArgumentException(nameof(aliasName));
             Value = aliasName;
         }
 

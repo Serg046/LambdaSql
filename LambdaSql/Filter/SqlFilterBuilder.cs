@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
-using GuardExtensions;
 using LambdaSql.Field;
 using LambdaSql.Filter.SqlFilterItem;
 
@@ -50,7 +49,7 @@ namespace LambdaSql.Filter
 
         public T ComparisonFilter<T>(string @operator, ISqlField sqlField)
         {
-            Guard.IsNotNull(sqlField);
+            if (sqlField == null) throw new ArgumentNullException(nameof(sqlField));
             Func<SqlFilterConfiguration, SqlFilterParameter[]> args = config => new[]
             {
                 SqlFilterParameter.Create(config, _sqlField),
@@ -64,8 +63,7 @@ namespace LambdaSql.Filter
 
         public T ComparisonFilter<T, TAlias>(string logicOperator, LambdaExpression field, ISqlAlias alias)
         {
-            Guard.IsNotNull(field);
-
+            if (field == null) throw new ArgumentNullException(nameof(field));
             alias = CheckAlias<TAlias>(alias);
             var sqlField = new SqlField<TEntity>() { Alias = alias, Name = MetadataProvider.Instance.GetPropertyName(field) };
             return ComparisonFilter<T>(logicOperator, sqlField);

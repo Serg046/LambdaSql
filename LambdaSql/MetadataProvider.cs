@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
-using GuardExtensions;
 
 namespace LambdaSql
 {
@@ -24,18 +24,16 @@ namespace LambdaSql
 
         public static void Initialize(SqlAliasContainerBuilder aliasContainerBuilder)
         {
+            if (aliasContainerBuilder == null) throw new ArgumentNullException(nameof(aliasContainerBuilder));
+            if (aliasContainerBuilder.RegisteredAliases?.Any() != true) throw new ArgumentException("RegisteredAliases contains no elements");
             var provider = Instance as MetadataProvider;
-            if (provider == null)
-                throw new InvalidOperationException("The method supports only the default metadata provider");
-            Guard.IsNotNull(aliasContainerBuilder);
-            Guard.IsPositive(aliasContainerBuilder.RegisteredAliases.Count);
+            if (provider == null) throw new InvalidOperationException("The method supports only the default metadata provider");
             provider._aliasContainer = new SqlAliasContainer(aliasContainerBuilder.RegisteredAliases);
         }
 
         public static void Initialize(IMetadataProvider metadataProvider)
         {
-            Guard.IsNotNull(metadataProvider);
-            Instance = metadataProvider;
+            Instance = metadataProvider ?? throw new ArgumentNullException(nameof(metadataProvider));
         }
 
         public virtual string GetTableName<TEntity>()
@@ -45,19 +43,19 @@ namespace LambdaSql
 
         public virtual string GetTableName(Type entityType)
         {
-            Guard.IsNotNull(entityType);
+            if (entityType == null) throw new ArgumentNullException(nameof(entityType));
             return entityType.Name;
         }
 
         public virtual string GetPropertyName(LambdaExpression propertyExpression)
         {
-            Guard.IsNotNull(propertyExpression);
+            if (propertyExpression == null) throw new ArgumentNullException(nameof(propertyExpression));
             return GetPropertyName(LibHelper.GetMemberExpression(propertyExpression));
         }
 
         public virtual string GetPropertyName(MemberExpression memberExpression)
         {
-            Guard.IsNotNull(memberExpression);
+            if (memberExpression == null) throw new ArgumentNullException(nameof(memberExpression));
             return memberExpression.Member.Name;
         }
 
@@ -65,8 +63,7 @@ namespace LambdaSql
 
         public virtual string ParameterToString(object value)
         {
-            Guard.IsNotNull(value);
-
+            if (value == null) throw new ArgumentNullException(nameof(value));
             var paramType = Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType();
 
             if (paramType == typeof(int))

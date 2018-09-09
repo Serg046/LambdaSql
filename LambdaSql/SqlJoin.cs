@@ -1,5 +1,4 @@
 ﻿using System;
-using GuardExtensions;
 using LambdaSql.Filter;
 
 namespace LambdaSql
@@ -24,12 +23,9 @@ namespace LambdaSql
     {
         public SqlJoin(JoinType joinType, ISqlFilter joinCondition, SqlAlias<TJoin> joinAlias)
         {
-            Guard.IsNotNull(joinCondition);
-            Guard.IsNotNull(joinAlias);
-
             JoinType = joinType;
-            JoinCondition = joinCondition;
-            JoinAlias = joinAlias;
+            JoinCondition = joinCondition ?? throw new ArgumentNullException(nameof(joinCondition));
+            JoinAlias = joinAlias ?? throw new ArgumentNullException(nameof(joinAlias));
         }
 
         public JoinType JoinType { get; }

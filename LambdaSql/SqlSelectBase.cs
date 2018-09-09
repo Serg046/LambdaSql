@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
-using GuardExtensions;
 using LambdaSql.Field;
 using LambdaSql.Filter;
 using LambdaSql.QueryBuilder;
@@ -34,8 +33,8 @@ namespace LambdaSql
 
         private ISqlField CreateSqlField<TEntity>(string name, ISqlAlias alias)
         {
-            Guard.IsNotEmpty(name);
-            Guard.IsNotNull(alias);
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(nameof(name));
+            if (alias == null) throw new ArgumentNullException(nameof(alias));
             return new SqlField<TEntity>
             {
                 Name = name,
@@ -50,16 +49,16 @@ namespace LambdaSql
 
         protected ISqlFilter GetJoinFilter<TLeft, TJoin>(BinaryExpression expression, SqlAlias<TLeft> leftAlias, SqlAlias<TJoin> joinAlias)
         {
-            Guard.IsNotNull(leftAlias);
-            Guard.IsNotNull(joinAlias);
+            if (leftAlias == null) throw new ArgumentNullException(nameof(leftAlias));
+            if (joinAlias == null) throw new ArgumentNullException(nameof(joinAlias));
             if (expression == null || expression.NodeType != ExpressionType.Equal)
                 throw new JoinException("Invalid join expression");
 
             var leftExpr = LibHelper.GetMemberExpression(expression.Left);
             var rightExpr = LibHelper.GetMemberExpression(expression.Right);
 
-            Guard.IsNotNull(leftExpr);
-            Guard.IsNotNull(rightExpr);
+            if (leftExpr == null) throw new ArgumentNullException(nameof(leftExpr));
+            if (rightExpr == null) throw new ArgumentNullException(nameof(rightExpr));
 
             var rightField = leftExpr.Expression.Type == leftAlias.EntityType
                 ? CreateSqlField<TJoin>(MetadataProvider.GetPropertyName(rightExpr), joinAlias)
@@ -74,7 +73,7 @@ namespace LambdaSql
 
         protected SqlSelectInfo Join<TJoin>(JoinType joinType, ISqlFilter condition, SqlAlias<TJoin> joinAlias = null)
         {
-            Guard.IsNotNull(condition);
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (joinAlias == null)
                 joinAlias = MetadataProvider.AliasFor<TJoin>();
             if (Info.Joins().Any(j => j.JoinAlias.Value == joinAlias.Value))

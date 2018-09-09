@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GuardExtensions;
 
 namespace LambdaSql
 {
@@ -46,7 +45,7 @@ namespace LambdaSql
 
         private string GenerateAliasName(Type entityType)
         {
-            Guard.IsNotNull(entityType);
+            if (entityType == null) throw new ArgumentNullException(nameof(entityType));
 
             var alias = MetadataProvider.Instance.GetTableName(entityType);
             if (alias.Length > 2)

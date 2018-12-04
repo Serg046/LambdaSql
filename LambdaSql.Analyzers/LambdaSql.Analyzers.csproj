@@ -8,7 +8,10 @@
   
   <PropertyGroup>
     <PackageId>LambdaSql.Analyzers</PackageId>
-    <PackageVersion>1.1.0.0</PackageVersion>
+    <PackageVersion>1.2.0.0</PackageVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <Version>1.2.0.0</Version>
     <Authors>Serg046</Authors>
     <PackageProjectUrl>https://github.com/Serg046/LambdaSql</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

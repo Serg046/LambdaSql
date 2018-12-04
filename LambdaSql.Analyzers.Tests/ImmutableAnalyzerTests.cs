@@ -20,7 +20,7 @@ namespace LambdaSql.Analyzers.Tests
     {{
         void TestMethod()
         {{
-            {expression}
+            {expression};
         }}
     }}
 }}";
@@ -37,7 +37,7 @@ namespace LambdaSql.Analyzers.Tests
         [Theory]
         [InlineData("var qry = new SqlSelect<int>().Distinct()")]
         [InlineData("var qry = new SqlSelect<int>().Distinct().Distinct(false)")]
-        public void ValidExpression_DiagnosticIsReported(string expression)
+        public void ValidExpression_NoDiagnosticIsReported(string expression)
         {
             var test = $@"
 namespace LambdaSql.Analyzers.Tests
@@ -46,7 +46,27 @@ namespace LambdaSql.Analyzers.Tests
     {{
         void TestMethod()
         {{
-            {expression}
+            {expression};
+        }}
+    }}
+}}";
+
+            VerifyCSharpDiagnostic(test);
+        }
+
+        [Theory]
+        [InlineData("new SqlAliasContainerBuilder().Register<Machine>(\"m\")")]
+        [InlineData("MetadataProvider.Initialize(new SqlAliasContainerBuilder())")]
+        public void MutableMethod_NoDiagnosticIsReported(string expression)
+        {
+            var test = $@"
+namespace LambdaSql.Analyzers.Tests
+{{
+    class TestType
+    {{
+        void TestMethod()
+        {{
+            {expression};
         }}
     }}
 }}";

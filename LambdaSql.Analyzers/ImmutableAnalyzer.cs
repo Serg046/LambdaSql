@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,6 +18,8 @@ namespace LambdaSql.Analyzers
             "Immutability",
             DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+        private static readonly string[] _mutableTypes = new[] { "LambdaSql.SqlAliasContainerBuilder", "LambdaSql.MetadataProvider" };
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
 
         public override void Initialize(AnalysisContext context)
@@ -29,16 +32,23 @@ namespace LambdaSql.Analyzers
             });
         }
 
-        private static void Analyze(SyntaxNodeAnalysisContext context, IAssemblySymbol lambdaSqlAssembly)
+        private void Analyze(SyntaxNodeAnalysisContext context, IAssemblySymbol lambdaSqlAssembly)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
             var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol;
-            if (symbolInfo != null && ReferenceEquals(symbolInfo.ContainingAssembly, lambdaSqlAssembly) && invocation.Parent.IsKind(SyntaxKind.ExpressionStatement))
+            if (symbolInfo != null && ReferenceEquals(symbolInfo.ContainingAssembly, lambdaSqlAssembly)
+                && invocation.Parent.IsKind(SyntaxKind.ExpressionStatement) && IsImmutableMember(symbolInfo))
             {
                 var diagnostic = Diagnostic.Create(_rule, invocation.GetLocation(),
                     symbolInfo.ContainingType.ToString(), symbolInfo.Name);
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private bool IsImmutableMember(ISymbol symbol)
+        {
+            var typeName = symbol.ContainingType.ToString();
+            return _mutableTypes.All(type => type != typeName);
         }
     }
 }

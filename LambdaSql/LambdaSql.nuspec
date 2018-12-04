@@ -12,7 +12,7 @@
     <dependencies>
       <dependency id="ReadOnlyCollectionInterfaces" version="1.0"/>
       <dependency id="System.Collections.Immutable.Net40" version="1.0.30.17"/>
-      <dependency id="LambdaSql.Analyzers" version="1.1.0"/>
+      <dependency id="LambdaSql.Analyzers" version="1.2.0"/>
     </dependencies>
   </metadata>
   <files>

@@ -74,9 +74,15 @@ namespace LambdaSql.Filter.SqlFilterItem
                 => _configuration.WithoutParameters ? null : _dbParameter;
 
             public override string Value
-                => _configuration.WithoutParameters
-                    ? _quotedParameterTypes.Contains(_dbParameter.DbType) ? $"'{_dbParameter.Value}'" : _dbParameter.Value.ToString()
-                    : _dbParameter.ParameterName;
+            {
+                get
+                {
+                    var value = MetadataProvider.Instance.ParameterToString(_dbParameter.Value);
+                    return _configuration.WithoutParameters
+                        ? _quotedParameterTypes.Contains(_dbParameter.DbType) ? $"'{value}'" : value
+                        : _dbParameter.ParameterName;
+                }
+            }
         }
     }
 }

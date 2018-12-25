@@ -64,22 +64,13 @@ namespace LambdaSql
         public virtual string ParameterToString(object value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
-            var paramType = Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType();
 
-            if (paramType == typeof(int))
-                return ((int)value).ToString();
-            if (paramType == typeof(string))
+            switch (value)
             {
-                var val = value.ToString();
-                if (val.Length > 0)
-                {
-                    return $"'{val}'";
-                }
-                throw new NotSupportedException("The value is empty");
+                case bool flag: return flag ? "1" : "0";
             }
-            if (paramType == typeof(bool))
-                return (bool)value ? "1" : "0";
-            throw new NotSupportedException($"Type {value.GetType().FullName} is not supported as parameter");
+
+            return value.ToString();
         }
 
         public virtual SqlAlias<TEntity> AliasFor<TEntity>()

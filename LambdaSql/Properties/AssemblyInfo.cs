@@ -32,6 +32,6 @@ using System.Runtime.InteropServices;
 // Можно задать все значения или принять номера сборки и редакции по умолчанию 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.2.1.3")]
-[assembly: AssemblyFileVersion("0.2.1.3")]
+[assembly: AssemblyVersion("0.2.1.4")]
+[assembly: AssemblyFileVersion("0.2.1.4")]
 [assembly: InternalsVisibleTo("LambdaSql.UnitTests")]

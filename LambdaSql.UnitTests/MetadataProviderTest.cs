@@ -44,7 +44,7 @@ namespace LambdaSql.UnitTests
             Assert.Equal("Id", MetadataProvider.Instance.GetPropertyName(test3));
         }
 
-        [Fact]
+        [Fact(Skip = "Waits for https://github.com/Serg046/LambdaSql/issues/20")]
         public void ParameterIsConvertedCorrectly()
         {
             Assert.Equal("5", MetadataProvider.Instance.ParameterToString(5));

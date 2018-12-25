@@ -83,6 +83,7 @@
     <Compile Include="Entities\Passport.cs" />
     <Compile Include="Entities\Person.cs" />
     <Compile Include="Filter\MultitableSqlFilterTest.cs" />
+    <Compile Include="Filter\SqlFilterParameterTest.cs" />
     <Compile Include="MetadataProviderTest.cs" />
     <Compile Include="SqlFieldTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

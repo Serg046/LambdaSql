@@ -182,5 +182,7 @@ namespace LambdaSql.Filter
             filter.ParamPrefix = prefix;
             return filter;
         }
+
+        public MultitableSqlFilter<TEntity> AsMultitable() => new MultitableSqlFilter<TEntity>(FilterItems);
     }
 }

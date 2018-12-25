@@ -363,5 +363,18 @@ namespace LambdaSql.UnitTests.Filter
             Assert.Equal("pe.Id = @p0", filter.ParametricSql);
             Assert.Equal("pe.Id = @prm0", filter.WithParameterPrefix("prm").ParametricSql);
         }
+
+        [Fact]
+        public void AsMultitable_SqlFilter_Converted()
+        {
+            var filter = SqlFilter<Person>.From(m => m.Id).EqualTo(5);
+
+            var multitableFilter = filter.AsMultitable();
+
+            Assert.Equal("pe.Id = 5", filter.RawSql);
+            Assert.Equal("pe.Id = 5", multitableFilter.RawSql);
+            Assert.Equal("pe.Id = 5 AND pa.Id = 3", multitableFilter
+                .And(SqlFilter<Passport>.From(p => p.Id).EqualTo(3)).RawSql);
+        }
     }
 }

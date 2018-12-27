@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 
@@ -11,7 +12,7 @@ namespace LambdaSql
         string GetPropertyName(LambdaExpression propertyExpression);
         string GetPropertyName(MemberExpression propertyExpression);
         DbParameter CreateDbParameter();
-        string ParameterToString(object value);
+        string ParameterToString(object value, DbType? dbType = null);
         SqlAlias<TEntity> AliasFor<TEntity>();
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Data;
-using System.Data.Common;
-using System.Linq;
+﻿using System.Data.Common;
 using LambdaSql.Field;
 
 namespace LambdaSql.Filter.SqlFilterItem
@@ -56,12 +54,6 @@ namespace LambdaSql.Filter.SqlFilterItem
 
         private class DbParamParameter : SqlFilterParameter
         {
-            private static readonly DbType[] _quotedParameterTypes = {
-                DbType.AnsiString, DbType.Date,
-                DbType.DateTime, DbType.Guid, DbType.String,
-                DbType.AnsiStringFixedLength, DbType.StringFixedLength
-            };
-
             private readonly DbParameter _dbParameter;
 
             public DbParamParameter(SqlFilterConfiguration configuration, DbParameter dbParameter)
@@ -73,16 +65,9 @@ namespace LambdaSql.Filter.SqlFilterItem
             public override DbParameter Parameter
                 => _configuration.WithoutParameters ? null : _dbParameter;
 
-            public override string Value
-            {
-                get
-                {
-                    var value = MetadataProvider.Instance.ParameterToString(_dbParameter.Value);
-                    return _configuration.WithoutParameters
-                        ? _quotedParameterTypes.Contains(_dbParameter.DbType) ? $"'{value}'" : value
-                        : _dbParameter.ParameterName;
-                }
-            }
+            public override string Value => _configuration.WithoutParameters
+                ? MetadataProvider.Instance.ParameterToString(_dbParameter.Value)
+                : _dbParameter.ParameterName;
         }
     }
 }

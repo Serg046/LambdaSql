@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
@@ -8,6 +9,12 @@ namespace LambdaSql
 {
     public class MetadataProvider : IMetadataProvider
     {
+        private static readonly DbType[] _quotedParameterTypes = {
+            DbType.AnsiString, DbType.Date,
+            DbType.DateTime, DbType.Guid, DbType.String,
+            DbType.AnsiStringFixedLength, DbType.StringFixedLength
+        };
+
         private SqlAliasContainer _aliasContainer;
 
         static MetadataProvider()
@@ -18,6 +25,13 @@ namespace LambdaSql
         protected MetadataProvider()
         {
             _aliasContainer = new SqlAliasContainer();
+        }
+
+        protected MetadataProvider(SqlAliasContainerBuilder aliasContainerBuilder)
+        {
+            if (aliasContainerBuilder == null) throw new ArgumentNullException(nameof(aliasContainerBuilder));
+            if (aliasContainerBuilder.RegisteredAliases?.Any() != true) throw new ArgumentException("RegisteredAliases contains no elements");
+            _aliasContainer = new SqlAliasContainer(aliasContainerBuilder.RegisteredAliases);
         }
 
         public static IMetadataProvider Instance { get; private set; }
@@ -61,16 +75,21 @@ namespace LambdaSql
 
         public DbParameter CreateDbParameter() => new SqlParameter();
 
-        public virtual string ParameterToString(object value)
+        public virtual string ParameterToString(object value, DbType? dbType = null)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
 
+            string result;
             switch (value)
             {
-                case bool flag: return flag ? "1" : "0";
+                case bool flag: result = flag ? "1" : "0"; break;
+                default: result = value.ToString(); break;
             }
 
-            return value.ToString();
+            return (dbType.HasValue && _quotedParameterTypes.Contains(dbType.Value)) ||
+                (!dbType.HasValue && value is string)
+                ? $"'{result}'"
+                : result;
         }
 
         public virtual SqlAlias<TEntity> AliasFor<TEntity>()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Xunit;
@@ -44,11 +45,24 @@ namespace LambdaSql.UnitTests
             Assert.Equal("Id", MetadataProvider.Instance.GetPropertyName(test3));
         }
 
-        [Fact(Skip = "Waits for https://github.com/Serg046/LambdaSql/issues/20")]
-        public void ParameterIsConvertedCorrectly()
+        [Theory]
+        [InlineData("5", "'5'")]
+        [InlineData(true, "1")]
+        [InlineData(false, "0")]
+        [InlineData(5, "5")]
+        public void ParameterToString_SomeValueWithoutDbType_ConvertedCorrectly(object value, string expectedString)
         {
-            Assert.Equal("5", MetadataProvider.Instance.ParameterToString(5));
-            Assert.Equal("'5'", MetadataProvider.Instance.ParameterToString("5"));
+            Assert.Equal(expectedString, MetadataProvider.Instance.ParameterToString(value));
+        }
+
+        [Theory]
+        [InlineData("5", DbType.Int32, "5")]
+        [InlineData(5, DbType.String, "'5'")]
+        [InlineData(true, DbType.Boolean, "1")]
+        [InlineData(false, DbType.Boolean, "0")]
+        public void ParameterToString_SomeValueWithDbType_ConvertedCorrectly(object value, DbType dbType, string expectedString)
+        {
+            Assert.Equal(expectedString, MetadataProvider.Instance.ParameterToString(value, dbType));
         }
 
         [Fact]
